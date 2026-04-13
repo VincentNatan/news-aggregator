@@ -784,29 +784,43 @@
         // Configuration
         const CONFIG = {
             refreshInterval: 5 * 60 * 1000, // 5 minutes
-            rss2jsonApiKey: 'YOUR_API_KEY', // Get free key at rss2json.com
-            maxNewsItems: 50
+            maxNewsItems: 50,
+            fetchTimeout: 10000 // 10 second timeout per feed
         };
 
-        // RSS Feed Sources
+        // CORS Proxies (fallback chain - if one fails, try next)
+        const CORS_PROXIES = [
+            (url) => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+            (url) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+            (url) => `https://corsproxy.io/?${encodeURIComponent(url)}`
+        ];
+
+        // RSS Feed Sources (verified working feeds)
         const RSS_FEEDS = {
             crypto: [
                 { url: 'https://cointelegraph.com/rss', name: 'CoinTelegraph' },
                 { url: 'https://decrypt.co/feed', name: 'Decrypt' },
                 { url: 'https://www.coindesk.com/arc/outboundfeeds/rss/', name: 'CoinDesk' },
-                { url: 'https://bitcoinmagazine.com/.rss/full/', name: 'Bitcoin Magazine' }
+                { url: 'https://bitcoinist.com/feed/', name: 'Bitcoinist' },
+                { url: 'https://cryptopotato.com/feed/', name: 'CryptoPotato' }
             ],
             macro: [
-                { url: 'https://feeds.bloomberg.com/markets/news.rss', name: 'Bloomberg' },
-                { url: 'https://www.reutersagency.com/feed/?best-topics=business-finance&post_type=best', name: 'Reuters' },
-                { url: 'https://feeds.a]finance.yahoo.com/rss/2.0/headline?s=^DJI,^GSPC&region=US&lang=en-US', name: 'Yahoo Finance' }
+                { url: 'https://www.cnbc.com/id/20910258/device/rss/rss.html', name: 'CNBC Economy' },
+                { url: 'https://www.cnbc.com/id/10000664/device/rss/rss.html', name: 'CNBC Finance' },
+                { url: 'https://feeds.marketwatch.com/marketwatch/topstories/', name: 'MarketWatch' },
+                { url: 'https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=10001147', name: 'CNBC World' },
+                { url: 'https://www.ft.com/rss/home', name: 'Financial Times' }
             ],
             stocks: [
-                { url: 'https://feeds.finance.yahoo.com/rss/2.0/headline?s=AAPL,MSFT,GOOGL,AMZN,NVDA,TSLA&region=US&lang=en-US', name: 'Yahoo Finance' },
-                { url: 'https://www.investing.com/rss/news_301.rss', name: 'Investing.com' },
-                { url: 'https://seekingalpha.com/market_currents.xml', name: 'Seeking Alpha' }
+                { url: 'https://www.cnbc.com/id/15839135/device/rss/rss.html', name: 'CNBC Stocks' },
+                { url: 'https://feeds.marketwatch.com/marketwatch/marketpulse/', name: 'MW MarketPulse' },
+                { url: 'https://www.reutersagency.com/feed/?taxonomy=best-sectors&post_type=best', name: 'Reuters' },
+                { url: 'https://feeds.finance.yahoo.com/rss/2.0/headline?s=AAPL,MSFT,GOOGL,AMZN,NVDA,TSLA&region=US&lang=en-US', name: 'Yahoo Finance' }
             ]
         };
+
+        // Track feed status for debugging
+        let feedStatus = {};
 
         // State
         let allNews = {
@@ -824,22 +838,51 @@
         setInterval(updateClock, 1000);
         updateClock();
 
-        // Fetch RSS via proxy (using rss2json or allorigins)
+        // Fetch with timeout
+        function fetchWithTimeout(url, timeout = CONFIG.fetchTimeout) {
+            return Promise.race([
+                fetch(url),
+                new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Timeout')), timeout)
+                )
+            ]);
+        }
+
+        // Fetch RSS with proxy fallback chain
         async function fetchRSS(feedUrl, sourceName) {
-            try {
-                // Using allorigins as a free CORS proxy
-                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(feedUrl)}`;
-                const response = await fetch(proxyUrl);
-                const data = await response.json();
-                
-                if (data.contents) {
-                    return parseRSS(data.contents, sourceName);
+            for (let i = 0; i < CORS_PROXIES.length; i++) {
+                try {
+                    const proxyUrl = CORS_PROXIES[i](feedUrl);
+                    const response = await fetchWithTimeout(proxyUrl);
+                    
+                    // allorigins returns JSON wrapper, others return raw text
+                    let xmlText;
+                    const contentType = response.headers.get('content-type') || '';
+                    
+                    if (contentType.includes('application/json') || proxyUrl.includes('allorigins')) {
+                        const data = await response.json();
+                        xmlText = data.contents;
+                    } else {
+                        xmlText = await response.text();
+                    }
+
+                    if (xmlText) {
+                        const results = parseRSS(xmlText, sourceName);
+                        if (results.length > 0) {
+                            feedStatus[sourceName] = { status: 'ok', count: results.length, proxy: i };
+                            console.log(`✅ ${sourceName}: ${results.length} items (proxy ${i})`);
+                            return results;
+                        }
+                    }
+                } catch (error) {
+                    console.warn(`⚠️ ${sourceName} proxy ${i} failed:`, error.message);
+                    continue; // Try next proxy
                 }
-                return [];
-            } catch (error) {
-                console.error(`Error fetching ${sourceName}:`, error);
-                return [];
             }
+            
+            feedStatus[sourceName] = { status: 'failed', count: 0 };
+            console.error(`❌ ${sourceName}: All proxies failed`);
+            return [];
         }
 
         // Parse RSS XML
@@ -847,6 +890,14 @@
             try {
                 const parser = new DOMParser();
                 const xml = parser.parseFromString(xmlString, 'text/xml');
+                
+                // Check for parse errors
+                const parseError = xml.querySelector('parsererror');
+                if (parseError) {
+                    console.warn(`XML parse error for ${sourceName}`);
+                    return [];
+                }
+
                 const items = xml.querySelectorAll('item');
                 const news = [];
 
@@ -855,14 +906,35 @@
                     
                     const title = item.querySelector('title')?.textContent || '';
                     const description = item.querySelector('description')?.textContent || '';
-                    const link = item.querySelector('link')?.textContent || '';
                     const pubDate = item.querySelector('pubDate')?.textContent || '';
+                    
+                    // Robust link extraction: try multiple methods
+                    let link = '';
+                    const linkEl = item.querySelector('link');
+                    if (linkEl) {
+                        // Method 1: textContent
+                        link = linkEl.textContent.trim();
+                        // Method 2: if empty, check next sibling text node
+                        if (!link && linkEl.nextSibling && linkEl.nextSibling.nodeType === 3) {
+                            link = linkEl.nextSibling.textContent.trim();
+                        }
+                        // Method 3: href attribute (Atom-style)
+                        if (!link) {
+                            link = linkEl.getAttribute('href') || '';
+                        }
+                    }
+                    // Method 4: guid as fallback
+                    if (!link) {
+                        link = item.querySelector('guid')?.textContent || '';
+                    }
+
+                    if (!title) return; // Skip items without titles
 
                     news.push({
                         title: cleanHTML(title),
                         description: cleanHTML(description).substring(0, 200),
                         link,
-                        pubDate: new Date(pubDate),
+                        pubDate: pubDate ? new Date(pubDate) : new Date(),
                         source: sourceName,
                         sentiment: analyzeSentiment(title + ' ' + description)
                     });
@@ -879,7 +951,7 @@
         function cleanHTML(str) {
             const div = document.createElement('div');
             div.innerHTML = str;
-            return div.textContent || div.innerText || '';
+            return (div.textContent || div.innerText || '').trim();
         }
 
         // Simple sentiment analysis
@@ -916,10 +988,18 @@
             const container = document.getElementById(containerId);
             
             if (news.length === 0) {
+                // Show which feeds failed
+                const categoryFeeds = RSS_FEEDS[category];
+                const failedFeeds = categoryFeeds
+                    .filter(f => feedStatus[f.name]?.status === 'failed')
+                    .map(f => f.name);
+                
                 container.innerHTML = `
                     <div class="error-message">
                         <div class="error-icon">📡</div>
-                        <div>Unable to fetch news. Check console for errors.</div>
+                        <div>Unable to fetch news from any source.</div>
+                        ${failedFeeds.length > 0 ? `<div style="font-size:0.75rem; margin-top:0.5rem; color:var(--text-muted)">Failed: ${failedFeeds.join(', ')}</div>` : ''}
+                        <div style="font-size:0.75rem; margin-top:0.5rem; color:var(--text-muted)">Try refreshing or check browser console (F12)</div>
                     </div>
                 `;
                 return;
@@ -1037,6 +1117,7 @@
         async function refreshAllFeeds() {
             const btn = document.querySelector('.refresh-btn');
             btn.classList.add('refreshing');
+            feedStatus = {}; // Reset status
 
             // Show loading
             ['cryptoNews', 'macroNews', 'stocksNews'].forEach(id => {
@@ -1062,6 +1143,12 @@
             renderNews(cryptoNews, 'cryptoNews', 'crypto');
             renderNews(macroNews, 'macroNews', 'macro');
             renderNews(stocksNews, 'stocksNews', 'stocks');
+
+            // Log summary
+            const total = cryptoNews.length + macroNews.length + stocksNews.length;
+            const failed = Object.values(feedStatus).filter(s => s.status === 'failed').length;
+            const ok = Object.values(feedStatus).filter(s => s.status === 'ok').length;
+            console.log(`📊 Feed Summary: ${total} articles | ${ok} feeds OK | ${failed} feeds failed`);
 
             // Update last update time
             document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString('en-US', { hour12: false });
