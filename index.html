@@ -143,7 +143,7 @@
             margin: 0 auto;
             padding: 1.5rem;
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-columns: 1fr 1fr;
             gap: 1.5rem;
         }
 
@@ -210,6 +210,15 @@
 
         .panel-stocks .panel-title {
             color: var(--accent-green);
+        }
+
+        .panel-indonesia .panel-icon {
+            background: rgba(255, 107, 107, 0.2);
+            color: var(--accent-red);
+        }
+
+        .panel-indonesia .panel-title {
+            color: var(--accent-red);
         }
 
         .panel-badge {
@@ -511,7 +520,7 @@
         }
 
         /* Responsive */
-        @media (max-width: 1200px) {
+        @media (max-width: 1400px) {
             .main-container {
                 grid-template-columns: 1fr 1fr;
             }
@@ -770,6 +779,43 @@
                 </div>
             </div>
         </div>
+
+        <!-- Indonesia Market Panel -->
+        <div class="panel panel-indonesia">
+            <div class="panel-header">
+                <div class="panel-title">
+                    <div class="panel-icon">🇮🇩</div>
+                    <span>INDONESIA MARKET</span>
+                </div>
+                <span class="panel-badge" id="indonesiaCount">0 items</span>
+            </div>
+            <div class="market-stats" id="indonesiaStats">
+                <div class="stat-item">
+                    <span class="stat-label">IHSG</span>
+                    <span class="stat-value" id="ihsgValue">--</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">USD/IDR</span>
+                    <span class="stat-value" id="idrValue">--</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">BI Rate</span>
+                    <span class="stat-value" id="biRate">--</span>
+                </div>
+            </div>
+            <div class="filter-tabs">
+                <div class="filter-tab active" data-filter="all">All</div>
+                <div class="filter-tab" data-filter="saham">Saham</div>
+                <div class="filter-tab" data-filter="rupiah">Rupiah</div>
+                <div class="filter-tab" data-filter="bank">Banking</div>
+            </div>
+            <div class="panel-content" id="indonesiaNews">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text">Fetching Indonesia news...</div>
+                </div>
+            </div>
+        </div>
     </main>
 
     <!-- Command Bar -->
@@ -807,15 +853,21 @@
             macro: [
                 { url: 'https://www.cnbc.com/id/20910258/device/rss/rss.html', name: 'CNBC Economy' },
                 { url: 'https://www.cnbc.com/id/10000664/device/rss/rss.html', name: 'CNBC Finance' },
-                { url: 'https://feeds.marketwatch.com/marketwatch/topstories/', name: 'MarketWatch' },
+                { url: 'https://feeds.content.dowjones.io/public/rss/mw_topstories', name: 'MarketWatch' },
                 { url: 'https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=10001147', name: 'CNBC World' },
                 { url: 'https://www.ft.com/rss/home', name: 'Financial Times' }
             ],
             stocks: [
                 { url: 'https://www.cnbc.com/id/15839135/device/rss/rss.html', name: 'CNBC Stocks' },
-                { url: 'https://feeds.marketwatch.com/marketwatch/marketpulse/', name: 'MW MarketPulse' },
+                { url: 'https://feeds.content.dowjones.io/public/rss/mw_marketpulse', name: 'MW MarketPulse' },
                 { url: 'https://www.reutersagency.com/feed/?taxonomy=best-sectors&post_type=best', name: 'Reuters' },
                 { url: 'https://feeds.finance.yahoo.com/rss/2.0/headline?s=AAPL,MSFT,GOOGL,AMZN,NVDA,TSLA&region=US&lang=en-US', name: 'Yahoo Finance' }
+            ],
+            indonesia: [
+                { url: 'https://www.cnbcindonesia.com/market/rss', name: 'CNBC ID Market' },
+                { url: 'https://www.cnbcindonesia.com/rss', name: 'CNBC Indonesia' },
+                { url: 'https://en.antaranews.com/rss/news.xml', name: 'Antara News' },
+                { url: 'https://www.investing.com/rss/news_14.rss', name: 'Investing.com' }
             ]
         };
 
@@ -826,7 +878,8 @@
         let allNews = {
             crypto: [],
             macro: [],
-            stocks: []
+            stocks: [],
+            indonesia: []
         };
 
         // Clock Update
@@ -1095,6 +1148,8 @@
                 { symbol: 'NVDA', price: '$923.45', change: '+3.45%', positive: true },
                 { symbol: 'GOLD', price: '$2,345', change: '+0.56%', positive: true },
                 { symbol: 'DXY', price: '104.23', change: '-0.23%', positive: false },
+                { symbol: 'IHSG', price: '7,500', change: '+0.56%', positive: true },
+                { symbol: 'IDR', price: '17,095', change: '-0.15%', positive: false },
             ];
 
             let html = '';
@@ -1120,7 +1175,7 @@
             feedStatus = {}; // Reset status
 
             // Show loading
-            ['cryptoNews', 'macroNews', 'stocksNews'].forEach(id => {
+            ['cryptoNews', 'macroNews', 'stocksNews', 'indonesiaNews'].forEach(id => {
                 document.getElementById(id).innerHTML = `
                     <div class="loading">
                         <div class="loading-spinner"></div>
@@ -1130,22 +1185,25 @@
             });
 
             // Fetch all categories in parallel
-            const [cryptoNews, macroNews, stocksNews] = await Promise.all([
+            const [cryptoNews, macroNews, stocksNews, indonesiaNews] = await Promise.all([
                 fetchCategoryNews('crypto'),
                 fetchCategoryNews('macro'),
-                fetchCategoryNews('stocks')
+                fetchCategoryNews('stocks'),
+                fetchCategoryNews('indonesia')
             ]);
 
             allNews.crypto = cryptoNews;
             allNews.macro = macroNews;
             allNews.stocks = stocksNews;
+            allNews.indonesia = indonesiaNews;
 
             renderNews(cryptoNews, 'cryptoNews', 'crypto');
             renderNews(macroNews, 'macroNews', 'macro');
             renderNews(stocksNews, 'stocksNews', 'stocks');
+            renderNews(indonesiaNews, 'indonesiaNews', 'indonesia');
 
             // Log summary
-            const total = cryptoNews.length + macroNews.length + stocksNews.length;
+            const total = cryptoNews.length + macroNews.length + stocksNews.length + indonesiaNews.length;
             const failed = Object.values(feedStatus).filter(s => s.status === 'failed').length;
             const ok = Object.values(feedStatus).filter(s => s.status === 'ok').length;
             console.log(`📊 Feed Summary: ${total} articles | ${ok} feeds OK | ${failed} feeds failed`);
@@ -1187,7 +1245,7 @@
         function searchNews(query) {
             const lowerQuery = query.toLowerCase();
             
-            ['crypto', 'macro', 'stocks'].forEach(category => {
+            ['crypto', 'macro', 'stocks', 'indonesia'].forEach(category => {
                 const filtered = allNews[category].filter(item => 
                     item.title.toLowerCase().includes(lowerQuery) ||
                     item.description.toLowerCase().includes(lowerQuery)
@@ -1206,7 +1264,8 @@
                 
                 const filter = this.dataset.filter;
                 const category = parent.classList.contains('panel-crypto') ? 'crypto' :
-                               parent.classList.contains('panel-macro') ? 'macro' : 'stocks';
+                               parent.classList.contains('panel-macro') ? 'macro' :
+                               parent.classList.contains('panel-indonesia') ? 'indonesia' : 'stocks';
                 
                 if (filter === 'all') {
                     renderNews(allNews[category], category + 'News', category);
