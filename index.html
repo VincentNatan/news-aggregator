@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IDX News Aggregator - Real-Time</title>
+    <title>News Aggregator - Real-Time</title>
     <style>
         :root {
             --bg-primary: #ffffff;
@@ -59,7 +59,7 @@
 
         .header {
             background: var(--bg-secondary);
-            padding: 1.5rem;
+            padding: 1rem;
             border-bottom: 1px solid var(--border-color);
             position: sticky;
             top: 0;
@@ -79,10 +79,8 @@
 
         .header h1 {
             color: var(--text-primary);
-            font-size: 1.5rem;
+            font-size: 2rem;
             font-weight: 600;
-            margin-bottom: 0.25rem;
-            text-align: center;
             flex: 1;
         }
 
@@ -103,6 +101,7 @@
             border: 1px solid var(--border-color);
             border-radius: 6px;
             cursor: pointer;
+            color: var(--text-primary);
             font-size: 1.25rem;
             transition: all 0.2s;
             display: flex;
@@ -122,10 +121,10 @@
 
         .refresh-btn {
             padding: 0.5rem;
-            background: var(--accent-color);
-            border: none;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
             border-radius: 6px;
-            color: #ffffff;
+            color: var(--text-primary);
             cursor: pointer;
             font-size: 1.25rem;
             font-weight: 500;
@@ -220,7 +219,7 @@
         .container {
             max-width: 1400px;
             margin: 0 auto;
-            padding: 2rem 1.5rem;
+            padding: 2rem 0rem;
         }
 
         .news-grid {
@@ -237,6 +236,10 @@
             transition: all 0.2s ease;
             cursor: pointer;
             position: relative;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            min-height: 200px;
         }
 
         .news-card:hover {
@@ -254,6 +257,13 @@
             justify-content: space-between;
             align-items: flex-start;
             margin-bottom: 0.75rem;
+        }
+
+        .news-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-top: 0.75rem;
         }
 
         .news-time {
@@ -275,22 +285,22 @@
             font-size: 0.875rem;
             margin-bottom: 1rem;
             line-height: 1.6;
+            flex-grow: 1;
         }
 
         .news-tags {
             display: flex;
             flex-wrap: wrap;
             gap: 0.5rem;
-            margin-bottom: 0.75rem;
         }
 
         .tag {
-            padding: 0.3rem 0.75rem;
-            border-radius: 15px;
-            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.65rem;
             font-weight: 500;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
         }
 
         .tag.bull {
@@ -351,35 +361,6 @@
             font-weight: 500;
         }
 
-        .loading {
-            text-align: center;
-            padding: 3rem;
-            color: var(--text-secondary);
-            font-size: 1rem;
-        }
-
-        .add-news-btn {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            width: 56px;
-            height: 56px;
-            background: var(--accent-color);
-            border: none;
-            border-radius: 50%;
-            color: #ffffff;
-            font-size: 1.5rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            z-index: 99;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        .add-news-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
-        }
-
         @media (max-width: 768px) {
             .header {
                 padding: 1rem;
@@ -414,125 +395,6 @@
                 width: 100%;
                 justify-content: flex-start;
             }
-
-            .add-news-btn {
-                bottom: 1.5rem;
-                right: 1.5rem;
-                width: 48px;
-                height: 48px;
-            }
-
-            .modal-content {
-                margin: 1rem;
-                padding: 1.5rem;
-            }
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            overflow-y: auto;
-            backdrop-filter: blur(4px);
-        }
-
-        .modal-content {
-            background: var(--bg-card);
-            margin: 2rem auto;
-            padding: 2rem;
-            max-width: 600px;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        }
-
-        .modal h2 {
-            color: var(--text-primary);
-            margin-bottom: 1.5rem;
-            font-size: 1.5rem;
-        }
-
-        .form-group {
-            margin-bottom: 1.25rem;
-        }
-
-        .form-group label {
-            display: block;
-            color: var(--text-primary);
-            margin-bottom: 0.5rem;
-            font-size: 0.875rem;
-            font-weight: 500;
-        }
-
-        .form-group input,
-        .form-group textarea,
-        .form-group select {
-            width: 100%;
-            padding: 0.75rem;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            color: var(--text-primary);
-            font-size: 0.875rem;
-            transition: border-color 0.2s;
-        }
-
-        .form-group input:focus,
-        .form-group textarea:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: var(--accent-color);
-        }
-
-        .form-group textarea {
-            min-height: 100px;
-            resize: vertical;
-            font-family: inherit;
-        }
-
-        .form-group select {
-            cursor: pointer;
-        }
-
-        .btn-group {
-            display: flex;
-            gap: 1rem;
-            margin-top: 1.5rem;
-        }
-
-        .btn {
-            flex: 1;
-            padding: 0.75rem;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.95rem;
-            transition: all 0.2s;
-        }
-
-        .btn-primary {
-            background: var(--accent-color);
-            color: #ffffff;
-            border: none;
-        }
-
-        .btn-primary:hover {
-            opacity: 0.9;
-        }
-
-        .btn-secondary {
-            background: transparent;
-            color: var(--text-primary);
-            border: 1px solid var(--border-color);
-        }
-
-        .btn-secondary:hover {
-            background: var(--hover-bg);
         }
     </style>
 </head>
@@ -540,12 +402,12 @@
     <div class="header">
         <div class="header-content">
             <div>
-                <h1>Indonesian Stock Market News</h1>
+                <h1>Market News</h1>
                 <div class="subtitle">Real-time news from multiple sources</div>
             </div>
             <div class="header-actions">
                 <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle">
-                    <span id="themeIcon">☾</span>
+                    ☾
                 </button>
                 <button class="refresh-btn" onclick="fetchNews()" id="refreshBtn">
                     ↻
@@ -578,46 +440,6 @@
         </div>
     </div>
 
-    <button class="add-news-btn" onclick="openModal()">+</button>
-
-    <div id="newsModal" class="modal">
-        <div class="modal-content">
-            <h2>Add News Article</h2>
-            <form id="newsForm">
-                <div class="form-group">
-                    <label>Title</label>
-                    <input type="text" id="newsTitle" required>
-                </div>
-                <div class="form-group">
-                    <label>Excerpt</label>
-                    <textarea id="newsExcerpt" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Source</label>
-                    <input type="text" id="newsSource" placeholder="e.g., CNBC Indonesia, Kontan">
-                </div>
-                <div class="form-group">
-                    <label>Tags (hold Ctrl to select multiple)</label>
-                    <select id="newsTags" multiple size="5">
-                        <option value="bull">Bull</option>
-                        <option value="bear">Bear</option>
-                        <option value="akuisisi">Akuisisi</option>
-                        <option value="right-issue">Right Issue</option>
-                        <option value="dividend">Dividend</option>
-                        <option value="ipo">IPO</option>
-                        <option value="buyback">Buyback</option>
-                        <option value="merger">Merger</option>
-                        <option value="earning">Earning</option>
-                    </select>
-                </div>
-                <div class="btn-group">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Add News</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <script>
         const NEWS_FEEDS = [
             {
@@ -647,29 +469,12 @@
             
             html.setAttribute('data-theme', newTheme);
             localStorage.setItem('theme', newTheme);
-            
-            updateThemeButton(newTheme);
-        }
-
-        function updateThemeButton(theme) {
-            const icon = document.getElementById('themeIcon');
-            
-            if (theme === 'dark') {
-                // Dark mode: show white sun
-                icon.textContent = '☀';
-                icon.style.color = '#ffffff';
-            } else {
-                // Light mode: show dark moon
-                icon.textContent = '☾';
-                icon.style.color = '#1a1a1a';
-            }
         }
 
         // Initialize theme
         function initTheme() {
             const savedTheme = localStorage.getItem('theme') || 'light';
             document.documentElement.setAttribute('data-theme', savedTheme);
-            updateThemeButton(savedTheme);
         }
 
         // Call initTheme on page load
@@ -723,7 +528,7 @@
             
             newsGrid.innerHTML = '<div class="loading">Loading real-time news...</div>';
             refreshBtn.classList.add('loading');
-            refreshBtn.textContent = '⟳';
+
 
             try {
                 const allNews = [];
@@ -735,6 +540,7 @@
 
                         if (data.status === 'ok' && data.items) {
                             data.items.forEach((item, index) => {
+                                // Convert UTC time to local device time
                                 const pubDate = new Date(item.pubDate);
                                 const tags = autoTagNews(item.title, item.description || '');
                                 
@@ -796,13 +602,13 @@
                 ).join('');
 
                 card.innerHTML = `
-                    <div class="news-header">
-                        <div class="news-time">${news.time}</div>
-                    </div>
                     <div class="news-title">${news.title}</div>
                     <div class="news-excerpt">${news.excerpt}</div>
                     <div class="news-tags">${tagsHtml}</div>
-                    <div class="news-source">${news.source}</div>
+                    <div class="news-footer">
+                        <div class="news-source">${news.source}</div>
+                        <div class="news-time">${news.time}</div>
+                    </div>
                 `;
 
                 newsGrid.appendChild(card);
@@ -841,51 +647,11 @@
             filterNews(activeFilter);
         }
 
-        function openModal() {
-            document.getElementById('newsModal').style.display = 'block';
-        }
-
-        function closeModal() {
-            document.getElementById('newsModal').style.display = 'none';
-            document.getElementById('newsForm').reset();
-        }
-
         document.querySelectorAll('.tag-filter').forEach(el => {
             el.addEventListener('click', () => filterNews(el.dataset.tag));
         });
 
         document.getElementById('searchInput').addEventListener('input', searchNews);
-
-        document.getElementById('newsForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            
-            const title = document.getElementById('newsTitle').value;
-            const excerpt = document.getElementById('newsExcerpt').value;
-            const source = document.getElementById('newsSource').value || 'User Submitted';
-            const selectedTags = Array.from(document.getElementById('newsTags').selectedOptions)
-                .map(opt => opt.value);
-
-            const newNews = {
-                id: Date.now(),
-                title,
-                excerpt,
-                tags: selectedTags.length > 0 ? selectedTags : ['default'],
-                source,
-                time: 'Just now',
-                pubDate: new Date()
-            };
-
-            newsData.unshift(newNews);
-            filterNews(activeFilter);
-            closeModal();
-        });
-
-        window.onclick = function(event) {
-            const modal = document.getElementById('newsModal');
-            if (event.target === modal) {
-                closeModal();
-            }
-        }
 
         fetchNews();
 
