@@ -9,6 +9,7 @@
             --bg-primary: #ffffff;
             --bg-secondary: #f8f9fa;
             --bg-card: #ffffff;
+            --bg-dock: #f8f9fae5;
             --text-primary: #1a1a1a;
             --text-secondary: #6c757d;
             --text-tertiary: #adb5bd;
@@ -28,6 +29,7 @@
             --bg-primary: #1a1a1a;
             --bg-secondary: #2d2d2d;
             --bg-card: #242424;
+            --bg-dock: #2d2d2dda;
             --text-primary: #e8e8e8;
             --text-secondary: #b0b0b0;
             --text-tertiary: #707070;
@@ -106,36 +108,26 @@
             align-items: center;
         }
 
-        .category-section {
-            background: var(--bg-primary);
-            padding: 1rem 1.5rem;
-            position: sticky;
-            top: 88px;
-            z-index: 99;
-            backdrop-filter: blur(20px);
-            background: var(--bg-secondary);
-        }
+        .dock {
+            position: fixed;
+            bottom: 3rem;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 1px solid var(--border-color);
 
-        .category-section-inner {
-            max-width: 1400px;
-            margin: 0 auto;
             display: flex;
-            justify-content: center;
+            gap: 1.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--bg-dock);
+            border-radius: 25rem;
+            backdrop-filter: blur(10px);
         }
 
-        .category-tabs {
-            display: flex;
-            gap: 1rem;
-            background: var(--bg-secondary);
-            padding: 0.5rem;
-            border-radius: 12px;
-        }
-
-        .category-tab {
-            padding: 0.75rem 2.5rem;
+        .dock-item {
+            padding: 0.5rem 1.25rem;
             background: transparent;
             border: none;
-            border-radius: 8px;
+            border-radius: 20rem;
             color: var(--text-secondary);
             cursor: pointer;
             font-size: 0.938rem;
@@ -144,18 +136,18 @@
             letter-spacing: -0.2px;
         }
 
-        .category-tab:hover {
+        .dock-item:hover {
             background: var(--bg-card);
             color: var(--text-primary);
         }
 
-        .category-tab.active {
+        .dock-item.active {
             background: var(--bg-card);
             color: var(--accent-color);
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         }
 
-        [data-theme="dark"] .category-tab.active {
+        [data-theme="dark"] .dock-item.active {
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
         }
 
@@ -509,15 +501,6 @@
         </div>
     </div>
 
-    <div class="category-section">
-        <div class="category-section-inner">
-            <div class="category-tabs">
-                <button class="category-tab active" data-category="idx" onclick="switchCategory('idx')">IDX</button>
-                <button class="category-tab" data-category="crypto" onclick="switchCategory('crypto')">Crypto</button>
-            </div>
-        </div>
-    </div>
-
     <div class="controls">  
         <div class="controls-inner">
             <div class="search-box">
@@ -540,6 +523,11 @@
         <div class="news-grid" id="newsGrid">
             <div class="loading">Loading news...</div>
         </div>
+    </div>
+
+    <div class="dock">
+            <button class="dock-item active" data-category="idx" onclick="switchCategory('idx')">IDX</button>
+            <button class="dock-item" data-category="crypto" onclick="switchCategory('crypto')">Crypto</button>
     </div>
 
     <script>
@@ -605,7 +593,7 @@
         function switchCategory(category) {
             activeCategory = category;
             
-            document.querySelectorAll('.category-tab').forEach(tab => {
+            document.querySelectorAll('.dock-item').forEach(tab => {
                 tab.classList.remove('active');
                 if (tab.dataset.category === category) {
                     tab.classList.add('active');
@@ -680,7 +668,7 @@
                         if (data.status === 'ok' && data.items) {
                             data.items.forEach((item, index) => {
                                 // Convert UTC time to local device time
-                                const pubDate = new Date(item.pubDate);
+                                const pubDate = new Date(item.pubDate.replace(" ", "T") + "Z");
                                 const tags = autoTagNews(item.title, item.description || '');
                                 
                                 const tempDiv = document.createElement('div');
