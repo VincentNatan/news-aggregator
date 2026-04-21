@@ -9,7 +9,7 @@
             --bg-primary: #ffffff;
             --bg-secondary: #f8f9fa;
             --bg-card: #ffffff;
-            --bg-dock: #f8f9fae5;
+            --bg-dock: #f8f9fa8c;
             --text-primary: #1a1a1a;
             --text-secondary: #6c757d;
             --text-tertiary: #adb5bd;
@@ -29,7 +29,7 @@
             --bg-primary: #1a1a1a;
             --bg-secondary: #2d2d2d;
             --bg-card: #242424;
-            --bg-dock: #2d2d2dda;
+            --bg-dock: #2d2d2d8e;
             --text-primary: #e8e8e8;
             --text-secondary: #b0b0b0;
             --text-tertiary: #707070;
@@ -110,17 +110,18 @@
 
         .dock {
             position: fixed;
-            bottom: 3rem;
+            bottom: 2rem;
             left: 50%;
             transform: translateX(-50%);
             border: 1px solid var(--border-color);
 
             display: flex;
-            gap: 1.5rem;
-            padding: 0.5rem 1rem;
+            gap: 1rem;
+            padding: 0.35rem 1rem;
             background: var(--bg-dock);
             border-radius: 25rem;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(4px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.10);
         }
 
         .dock-item {
@@ -384,54 +385,35 @@
             font-weight: 500;
             text-transform: uppercase;
             letter-spacing: 0.3px;
+            color: #0c5460;
+        }
+
+        [data-theme="dark"] .tag {
+            background: transparent;
+            color: var(--tag-other-text);
+            border: 1px solid var(--tag-other-text);
         }
 
         .tag.bull {
             background: #d4edda;
             color: #155724;
-            border: 1.5px solid #155724;
         }
-
+        
         [data-theme="dark"] .tag.bull {
             background: transparent;
             color: var(--tag-bull-text);
-            border: 1.5px solid var(--tag-bull-text);
+            border: 1px solid var(--tag-bull-text);
         }
 
         .tag.bear {
             background: #f8d7da;
             color: #721c24;
-            border: 1.5px solid #721c24;
         }
 
         [data-theme="dark"] .tag.bear {
             background: transparent;
             color: var(--tag-bear-text);
-            border: 1.5px solid var(--tag-bear-text);
-        }
-
-        .tag.akuisisi,
-        .tag.right-issue,
-        .tag.dividend,
-        .tag.ipo,
-        .tag.buyback,
-        .tag.merger,
-        .tag.earning {
-            background: #d1ecf1;
-            color: #0c5460;
-            border: 1.5px solid #0c5460;
-        }
-
-        [data-theme="dark"] .tag.akuisisi,
-        [data-theme="dark"] .tag.right-issue,
-        [data-theme="dark"] .tag.dividend,
-        [data-theme="dark"] .tag.ipo,
-        [data-theme="dark"] .tag.buyback,
-        [data-theme="dark"] .tag.merger,
-        [data-theme="dark"] .tag.earning {
-            background: transparent;
-            color: var(--tag-other-text);
-            border: 1.5px solid var(--tag-other-text);
+            border: 1px solid var(--tag-bear-text);
         }
 
         .tag.default {
@@ -506,19 +488,10 @@
             <div class="search-box">
                 <input type="text" id="searchInput" placeholder="Search news...">
             </div>
-            <div class="filter-tags">
-            <div class="tag-filter active" data-tag="all">All</div>
-            <div class="tag-filter" data-tag="bull">Bull</div>
-            <div class="tag-filter" data-tag="bear">Bear</div>
-            <div class="tag-filter" data-tag="akuisisi">Akuisisi</div>
-            <div class="tag-filter" data-tag="right-issue">Right Issue</div>
-            <div class="tag-filter" data-tag="dividend">Dividend</div>
-            <div class="tag-filter" data-tag="ipo">IPO</div>
-            <div class="tag-filter" data-tag="buyback">Buyback</div>
-            <div class="tag-filter" data-tag="merger">Merger</div>
-            <div class="tag-filter" data-tag="earning">Earning</div>
+            <div class="filter-tags" id="dynamicTags">
+            </div>
         </div>
-        </div>
+
     <div class="container">
         <div class="news-grid" id="newsGrid">
             <div class="loading">Loading news...</div>
@@ -548,6 +521,26 @@
                 category: 'idx'
             },
             {
+                url: 'https://feed.liputan6.com/rss/saham',
+                source: 'Liputan6',
+                category: 'idx'
+            },
+            {
+                url: 'https://sindikasi.idxchannel.com/rss/market-news',
+                source: 'IDXchanel',
+                category: 'idx'
+            },
+            {
+                url: 'https://stockwatch.id/category/market/feed/',
+                source: 'Stockwatch.id',
+                category: 'idx'
+            },
+            {
+                url: 'https://www.antaranews.com/rss/ekonomi-bursa.xml',
+                source: 'Antaranews',
+                category: 'idx'
+            },
+            {
                 url: 'https://cointelegraph.com/rss',
                 source: 'Cointelegraph',
                 category: 'crypto'
@@ -561,7 +554,13 @@
                 url: 'https://cryptoslate.com/feed/',
                 source: 'CryptoSlate',
                 category: 'crypto'
-            }
+            },
+            {
+                url: 'https://www.dlnews.com/arc/outboundfeeds/rss/category/articles/defi/',
+                source: 'Defilama (DeFi)',
+                category: 'crypto'
+            },
+            
         ];
 
         let newsData = [];
@@ -605,22 +604,25 @@
         }
 
         const TAG_KEYWORDS = {
+            'idx':{
             'bull': ['naik', 'reli', 'menguat', 'positif', 'tumbuh', 'profit', 'laba meningkat', 'ekspansi', 'pertumbuhan', 'rebound'],
             'bear': ['turun', 'melemah', 'jatuh', 'terkoreksi', 'negatif', 'rugi', 'penurunan', 'anjlok', 'susut', 'merosot'],
             'akuisisi': ['akuisisi', 'mengakuisisi', 'membeli', 'pembelian saham', 'take over', 'ambil alih'],
-            'right-issue': ['right issue', 'hmetd', 'penambahan modal', 'tambah modal'],
-            'dividend': ['dividen', 'dividen interim', 'dividen final', 'pembagian dividen', 'bagi dividen'],
-            'ipo': ['ipo', 'penawaran umum perdana', 'listing', 'melantai', 'pencatatan saham'],
-            'buyback': ['buyback', 'beli kembali', 'pembelian kembali saham'],
+            'penting': ['right issue', 'hmetd', 'penambahan modal', 'tambah modal','buyback', 'beli kembali', 'pembelian kembali saham','dividen','ipo','listing'],
             'merger': ['merger', 'penggabungan', 'konsolidasi', 'bergabung'],
             'earning': ['laba', 'rugi', 'laporan keuangan', 'kinerja keuangan', 'pendapatan', 'profit', 'revenue']
-        };
+        }, 'crypto': {
+            'bull': ['bullish', 'rally', 'pump', 'surge', 'spike', 'breakout','inflow', 'gain','all-time high', 'ath', 'accumulating'],
+            'bear': ['bearish', 'crash', 'dump', 'plunge', 'sell-off', 'correction','outflow','all-time low', 'liquidation', 'distribution'],
+            'regulation':['sec', 'etf', 'regulation', 'ban', 'lawsuit', 'approval'],
+            'security':['hack', 'exploit', 'rug pull', 'scam']
+        }};
 
         function autoTagNews(title, description) {
-            const text = (title + ' ' + description).toLowerCase();
+            const text = (title).toLowerCase();
             const tags = [];
 
-            for (const [tag, keywords] of Object.entries(TAG_KEYWORDS)) {
+            for (const [tag, keywords] of Object.entries(TAG_KEYWORDS[activeCategory])) {
                 if (keywords.some(keyword => text.includes(keyword))) {
                     tags.push(tag);
                 }
@@ -650,7 +652,7 @@
             const newsGrid = document.getElementById('newsGrid');
             const refreshBtn = document.getElementById('refreshBtn');
             
-            newsGrid.innerHTML = '<div class="loading">Loading real-time news...</div>';
+            newsGrid.innerHTML = '<div class="loading">Loading news...</div>';
             refreshBtn.classList.add('loading');
 
 
@@ -708,6 +710,14 @@
         }
 
         function renderNews() {
+            //create tags based on keywords in title and description
+            const dynamicTags = document.getElementById('dynamicTags');
+            dynamicTags.innerHTML = '<div class="tag-filter" data-tag="all">All</div>';
+            Object.keys(TAG_KEYWORDS[activeCategory]).forEach(tag => {
+                const html = `<div class="tag-filter" data-tag="${tag}">${tag}</div>`;
+                dynamicTags.insertAdjacentHTML('beforeend', html);
+            });
+
             const newsGrid = document.getElementById('newsGrid');
             newsGrid.innerHTML = '';
 
@@ -724,7 +734,7 @@
                 }
                 
                 const tagsHtml = news.tags.map(tag => 
-                    `<span class="tag ${tag}">${tag.replace('-', ' ')}</span>`
+                    `<span class="tag ${tag}">${tag}</span>`
                 ).join('');
 
                 card.innerHTML = `
@@ -774,8 +784,18 @@
             filterNews(activeFilter);
         }
 
-        document.querySelectorAll('.tag-filter').forEach(el => {
-            el.addEventListener('click', () => filterNews(el.dataset.tag));
+        document.getElementById('dynamicTags').addEventListener('click', (e) => {
+          const el = e.target.closest('.tag-filter');
+          if (!el) return;
+
+          activeTag = el.dataset.tag;
+
+          document.querySelectorAll('#dynamicTags .tag-filter').forEach(tag => {
+            tag.classList.remove('active');
+          });
+          el.classList.add('active');
+      
+          filterNews(activeTag);
         });
 
         document.getElementById('searchInput').addEventListener('input', searchNews);
