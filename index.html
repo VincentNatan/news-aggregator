@@ -3,24 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Market Terminal | News Aggregator</title>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+    <title>IDX News Aggregator - Real-Time</title>
     <style>
         :root {
-            --bg-primary: #0a0e14;
-            --bg-secondary: #0d1117;
-            --bg-card: #161b22;
-            --border-color: #21262d;
-            --text-primary: #c9d1d9;
-            --text-secondary: #8b949e;
-            --text-muted: #484f58;
-            --accent-green: #00ff88;
-            --accent-blue: #58a6ff;
-            --accent-yellow: #f0b429;
-            --accent-red: #ff6b6b;
-            --accent-purple: #a371f7;
-            --accent-orange: #f97316;
-            --accent-cyan: #22d3ee;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --bg-card: #ffffff;
+            --text-primary: #1a1a1a;
+            --text-secondary: #6c757d;
+            --text-tertiary: #adb5bd;
+            --border-color: #dee2e6;
+            --accent-color: #2c3e50;
+            --hover-bg: #f1f3f5;
+            --title-color: #2c3e50;
+            --tag-bull-bg: #d4edda;
+            --tag-bull-text: #155724;
+            --tag-bear-bg: #f8d7da;
+            --tag-bear-text: #721c24;
+            --tag-other-bg: #d1ecf1;
+            --tag-other-text: #0c5460;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2d2d2d;
+            --bg-card: #242424;
+            --text-primary: #e8e8e8;
+            --text-secondary: #b0b0b0;
+            --text-tertiary: #707070;
+            --border-color: #404040;
+            --accent-color: #4a9eff;
+            --hover-bg: #2f2f2f;
+            --title-color: #f1c40f;
+            --tag-bull-bg: rgba(40, 167, 69, 0.2);
+            --tag-bull-text: #5dd879;
+            --tag-bear-bg: rgba(220, 53, 69, 0.2);
+            --tag-bear-text: #ff6b7a;
+            --tag-other-bg: rgba(23, 162, 184, 0.2);
+            --tag-other-text: #17a2b8;
         }
 
         * {
@@ -30,1216 +50,853 @@
         }
 
         body {
-            font-family: 'JetBrains Mono', 'Fira Code', monospace;
-            background: var(--bg-primary);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-primary);
             color: var(--text-primary);
-            min-height: 100vh;
-            overflow-x: hidden;
+            line-height: 1.6;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
-        /* Scanline effect */
-        body::before {
-            content: "";
+        .header {
+            background: var(--bg-secondary);
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .header h1 {
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            text-align: center;
+            flex: 1;
+        }
+
+        .header .subtitle {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .theme-toggle {
+            padding: 0.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.25rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+        }
+
+        .theme-toggle span {
+            color: var(--text-primary);
+        }
+
+        .theme-toggle:hover {
+            background: var(--hover-bg);
+        }
+
+        .refresh-btn {
+            padding: 0.5rem;
+            background: var(--accent-color);
+            border: none;
+            border-radius: 6px;
+            color: #ffffff;
+            cursor: pointer;
+            font-size: 1.25rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .refresh-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .refresh-btn.loading {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .controls {
+            background: var(--bg-secondary);
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .controls-inner {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 0.625rem 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            transition: all 0.2s;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        .search-box input::placeholder {
+            color: var(--text-tertiary);
+        }
+
+        .filter-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .tag-filter {
+            padding: 0.5rem 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.813rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .tag-filter:hover {
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+        }
+
+        .tag-filter.active {
+            background: var(--accent-color);
+            border-color: var(--accent-color);
+            color: #ffffff;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+
+        .news-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .news-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .news-card:hover {
+            border-color: var(--accent-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        [data-theme="dark"] .news-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .news-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+        }
+
+        .news-time {
+            color: var(--text-tertiary);
+            font-size: 0.813rem;
+            white-space: nowrap;
+        }
+
+        .news-title {
+            color: var(--title-color);
+            font-size: 1.063rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            line-height: 1.5;
+        }
+
+        .news-excerpt {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+
+        .news-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .tag {
+            padding: 0.3rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .tag.bull {
+            background: #d4edda;
+            color: #155724;
+            border: 1.5px solid #155724;
+        }
+
+        [data-theme="dark"] .tag.bull {
+            background: transparent;
+            color: var(--tag-bull-text);
+            border: 1.5px solid var(--tag-bull-text);
+        }
+
+        .tag.bear {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1.5px solid #721c24;
+        }
+
+        [data-theme="dark"] .tag.bear {
+            background: transparent;
+            color: var(--tag-bear-text);
+            border: 1.5px solid var(--tag-bear-text);
+        }
+
+        .tag.akuisisi,
+        .tag.right-issue,
+        .tag.dividend,
+        .tag.ipo,
+        .tag.buyback,
+        .tag.merger,
+        .tag.earning {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1.5px solid #0c5460;
+        }
+
+        [data-theme="dark"] .tag.akuisisi,
+        [data-theme="dark"] .tag.right-issue,
+        [data-theme="dark"] .tag.dividend,
+        [data-theme="dark"] .tag.ipo,
+        [data-theme="dark"] .tag.buyback,
+        [data-theme="dark"] .tag.merger,
+        [data-theme="dark"] .tag.earning {
+            background: transparent;
+            color: var(--tag-other-text);
+            border: 1.5px solid var(--tag-other-text);
+        }
+
+        .tag.default {
+            display: none;
+        }
+
+        .news-source {
+            color: var(--text-tertiary);
+            font-size: 0.813rem;
+            font-weight: 500;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        .add-news-btn {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 56px;
+            height: 56px;
+            background: var(--accent-color);
+            border: none;
+            border-radius: 50%;
+            color: #ffffff;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            z-index: 99;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .add-news-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 1rem;
+            }
+
+            .header h1 {
+                font-size: 1.25rem;
+            }
+
+            .container {
+                padding: 1.5rem 1rem;
+            }
+
+            .news-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .controls {
+                padding: 1rem;
+            }
+
+            .controls-inner {
+                flex-direction: column;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+
+            .filter-tags {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .add-news-btn {
+                bottom: 1.5rem;
+                right: 1.5rem;
+                width: 48px;
+                height: 48px;
+            }
+
+            .modal-content {
+                margin: 1rem;
+                padding: 1.5rem;
+            }
+        }
+
+        .modal {
+            display: none;
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            pointer-events: none;
-            background: repeating-linear-gradient(
-                0deg,
-                rgba(0, 0, 0, 0.1),
-                rgba(0, 0, 0, 0.1) 1px,
-                transparent 1px,
-                transparent 2px
-            );
+            background: rgba(0, 0, 0, 0.5);
             z-index: 1000;
-        }
-
-        /* Header */
-        .header {
-            background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
-            border-bottom: 1px solid var(--border-color);
-            padding: 1rem 2rem;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .header-content {
-            max-width: 1800px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .logo-icon {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, var(--accent-green), var(--accent-cyan));
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            color: var(--bg-primary);
-            font-size: 1.2rem;
-        }
-
-        .logo-text {
-            font-size: 1.4rem;
-            font-weight: 700;
-            color: var(--accent-green);
-            text-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
-        }
-
-        .logo-text span {
-            color: var(--text-secondary);
-            font-weight: 400;
-        }
-
-        .status-bar {
-            display: flex;
-            align-items: center;
-            gap: 2rem;
-            font-size: 0.85rem;
-        }
-
-        .status-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: var(--text-secondary);
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--accent-green);
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        .clock {
-            color: var(--accent-cyan);
-            font-weight: 600;
-        }
-
-        /* Main Layout */
-        .main-container {
-            max-width: 1800px;
-            margin: 0 auto;
-            padding: 1.5rem;
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1.5rem;
-        }
-
-        /* Category Panels */
-        .panel {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            max-height: calc(100vh - 150px);
-        }
-
-        .panel-header {
-            padding: 1rem 1.25rem;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: var(--bg-secondary);
-        }
-
-        .panel-title {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            font-size: 1rem;
-            font-weight: 600;
-        }
-
-        .panel-icon {
-            width: 28px;
-            height: 28px;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1rem;
-        }
-
-        .panel-crypto .panel-icon {
-            background: rgba(247, 147, 26, 0.2);
-            color: var(--accent-orange);
-        }
-
-        .panel-crypto .panel-title {
-            color: var(--accent-orange);
-        }
-
-        .panel-indonesia .panel-icon {
-            background: rgba(255, 107, 107, 0.2);
-            color: var(--accent-red);
-        }
-
-        .panel-indonesia .panel-title {
-            color: var(--accent-red);
-        }
-
-        .panel-global .panel-icon {
-            background: rgba(88, 166, 255, 0.2);
-            color: var(--accent-blue);
-        }
-
-        .panel-global .panel-title {
-            color: var(--accent-blue);
-        }
-
-        .panel-badge {
-            background: var(--bg-primary);
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-        }
-
-        .panel-content {
-            flex: 1;
             overflow-y: auto;
-            padding: 0.5rem;
+            backdrop-filter: blur(4px);
         }
 
-        .panel-content::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .panel-content::-webkit-scrollbar-track {
-            background: var(--bg-primary);
-        }
-
-        .panel-content::-webkit-scrollbar-thumb {
-            background: var(--border-color);
-            border-radius: 3px;
-        }
-
-        .panel-content::-webkit-scrollbar-thumb:hover {
-            background: var(--text-muted);
-        }
-
-        /* News Items */
-        .news-item {
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 0.5rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border: 1px solid transparent;
-            position: relative;
-        }
-
-        .news-item:hover {
-            background: var(--bg-secondary);
-            border-color: var(--border-color);
-            transform: translateX(4px);
-        }
-
-        .news-item::before {
-            content: ">";
-            position: absolute;
-            left: -8px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--accent-green);
-            opacity: 0;
-            transition: all 0.2s ease;
-        }
-
-        .news-item:hover::before {
-            opacity: 1;
-            left: 4px;
-        }
-
-        .news-meta {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            margin-bottom: 0.5rem;
-            font-size: 0.75rem;
-        }
-
-        .news-source {
-            color: var(--accent-purple);
-            font-weight: 500;
-        }
-
-        .news-time {
-            color: var(--text-muted);
-        }
-
-        .news-sentiment {
-            padding: 0.15rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.7rem;
-            font-weight: 600;
-        }
-
-        .sentiment-bullish {
-            background: rgba(0, 255, 136, 0.15);
-            color: var(--accent-green);
-        }
-
-        .sentiment-bearish {
-            background: rgba(255, 107, 107, 0.15);
-            color: var(--accent-red);
-        }
-
-        .sentiment-neutral {
-            background: rgba(139, 148, 158, 0.15);
-            color: var(--text-secondary);
-        }
-
-        .news-title {
-            font-size: 0.9rem;
-            line-height: 1.5;
-            color: var(--text-primary);
-            margin-bottom: 0.5rem;
-        }
-
-        .news-description {
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-            line-height: 1.4;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        .news-tags {
-            display: flex;
-            gap: 0.5rem;
-            margin-top: 0.5rem;
-            flex-wrap: wrap;
-        }
-
-        .news-tag {
-            background: var(--bg-primary);
-            padding: 0.2rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.7rem;
-            color: var(--text-muted);
-        }
-
-        /* Loading State */
-        .loading {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 3rem;
-            color: var(--text-muted);
-        }
-
-        .loading-spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid var(--border-color);
-            border-top-color: var(--accent-green);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 1rem;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .loading-text {
-            font-size: 0.85rem;
-            animation: blink 1s steps(2) infinite;
-        }
-
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
-
-        /* Terminal Command Line */
-        .command-bar {
-            background: var(--bg-secondary);
-            border-top: 1px solid var(--border-color);
-            padding: 1rem 2rem;
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            z-index: 100;
-        }
-
-        .command-input {
-            max-width: 1800px;
-            margin: 0 auto;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .command-prompt {
-            color: var(--accent-green);
-            font-weight: 600;
-        }
-
-        .command-field {
-            flex: 1;
-            background: transparent;
-            border: none;
-            color: var(--text-primary);
-            font-family: inherit;
-            font-size: 0.9rem;
-            outline: none;
-        }
-
-        .command-field::placeholder {
-            color: var(--text-muted);
-        }
-
-        /* Ticker Tape */
-        .ticker-tape {
-            background: var(--bg-secondary);
-            border-bottom: 1px solid var(--border-color);
-            padding: 0.5rem 0;
-            overflow: hidden;
-        }
-
-        .ticker-content {
-            display: flex;
-            animation: ticker 60s linear infinite;
-            white-space: nowrap;
-        }
-
-        @keyframes ticker {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
-        }
-
-        .ticker-item {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0 2rem;
-            font-size: 0.85rem;
-        }
-
-        .ticker-symbol {
-            color: var(--accent-cyan);
-            font-weight: 600;
-        }
-
-        .ticker-price {
-            color: var(--text-primary);
-        }
-
-        .ticker-change {
-            font-weight: 500;
-        }
-
-        .ticker-change.positive {
-            color: var(--accent-green);
-        }
-
-        .ticker-change.negative {
-            color: var(--accent-red);
-        }
-
-        /* Filter Tabs */
-        .filter-tabs {
-            display: flex;
-            gap: 0.5rem;
-            padding: 0.75rem 1rem;
-            background: var(--bg-primary);
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .filter-tab {
-            padding: 0.4rem 0.8rem;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border: 1px solid transparent;
-        }
-
-        .filter-tab:hover {
+        .modal-content {
             background: var(--bg-card);
-            color: var(--text-primary);
-        }
-
-        .filter-tab.active {
-            background: var(--accent-green);
-            color: var(--bg-primary);
-            font-weight: 600;
-        }
-
-        /* Error State */
-        .error-message {
-            text-align: center;
+            margin: 2rem auto;
             padding: 2rem;
-            color: var(--accent-red);
-        }
-
-        .error-icon {
-            font-size: 2rem;
-            margin-bottom: 1rem;
-        }
-
-        /* Responsive */
-        @media (max-width: 1400px) {
-            .main-container {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
-
-        @media (max-width: 900px) {
-            .main-container {
-                grid-template-columns: 1fr;
-            }
-
-            .header-content {
-                flex-direction: column;
-                gap: 1rem;
-            }
-
-            .status-bar {
-                flex-wrap: wrap;
-                justify-content: center;
-            }
-
-            .panel {
-                max-height: 500px;
-            }
-        }
-
-        /* Refresh Button */
-        .refresh-btn {
-            background: transparent;
+            max-width: 600px;
+            border-radius: 12px;
             border: 1px solid var(--border-color);
-            color: var(--text-secondary);
-            padding: 0.4rem 0.8rem;
-            border-radius: 6px;
-            cursor: pointer;
-            font-family: inherit;
-            font-size: 0.75rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: all 0.2s ease;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         }
 
-        .refresh-btn:hover {
-            background: var(--bg-primary);
-            color: var(--accent-green);
-            border-color: var(--accent-green);
-        }
-
-        .refresh-btn.refreshing svg {
-            animation: spin 1s linear infinite;
-        }
-
-        /* Breaking News Alert */
-        .breaking-alert {
-            background: linear-gradient(90deg, rgba(255, 107, 107, 0.1), rgba(255, 107, 107, 0.05));
-            border-left: 3px solid var(--accent-red);
-            padding: 0.75rem 1rem;
-            margin: 0.5rem;
-            border-radius: 0 8px 8px 0;
-            animation: breakingPulse 2s ease-in-out infinite;
-        }
-
-        @keyframes breakingPulse {
-            0%, 100% { border-left-color: var(--accent-red); }
-            50% { border-left-color: var(--accent-yellow); }
-        }
-
-        .breaking-label {
-            color: var(--accent-red);
-            font-weight: 700;
-            font-size: 0.7rem;
-            letter-spacing: 1px;
-            margin-bottom: 0.25rem;
-        }
-
-        /* Market Stats Bar */
-        .market-stats {
-            display: flex;
-            gap: 1.5rem;
-            padding: 0.75rem 1.25rem;
-            background: var(--bg-primary);
-            border-bottom: 1px solid var(--border-color);
-            font-size: 0.8rem;
-            overflow-x: auto;
-        }
-
-        .stat-item {
-            display: flex;
-            flex-direction: column;
-            gap: 0.2rem;
-            min-width: fit-content;
-        }
-
-        .stat-label {
-            color: var(--text-muted);
-            font-size: 0.7rem;
-        }
-
-        .stat-value {
+        .modal h2 {
             color: var(--text-primary);
-            font-weight: 600;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
         }
 
-        .stat-value.positive {
-            color: var(--accent-green);
+        .form-group {
+            margin-bottom: 1.25rem;
         }
 
-        .stat-value.negative {
-            color: var(--accent-red);
+        .form-group label {
+            display: block;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .form-group select {
+            cursor: pointer;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--accent-color);
+            color: #ffffff;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--hover-bg);
         }
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <header class="header">
+    <div class="header">
         <div class="header-content">
-            <div class="logo">
-                <div class="logo-icon">MT</div>
-                <div class="logo-text">MARKET<span>TERMINAL</span></div>
+            <div>
+                <h1>Indonesian Stock Market News</h1>
+                <div class="subtitle">Real-time news from multiple sources</div>
             </div>
-            <div class="status-bar">
-                <div class="status-item">
-                    <span class="status-dot"></span>
-                    <span>LIVE FEED</span>
-                </div>
-                <div class="status-item">
-                    <span>Last Update:</span>
-                    <span id="lastUpdate">--:--:--</span>
-                </div>
-                <div class="status-item clock" id="clock">--:--:--</div>
-                <button class="refresh-btn" onclick="refreshAllFeeds()">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
-                    </svg>
-                    REFRESH
+            <div class="header-actions">
+                <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle">
+                    <span id="themeIcon">☾</span>
+                </button>
+                <button class="refresh-btn" onclick="fetchNews()" id="refreshBtn">
+                    ↻
                 </button>
             </div>
         </div>
-    </header>
+    </div>
 
-    <!-- Ticker Tape -->
-    <div class="ticker-tape">
-        <div class="ticker-content" id="tickerContent">
-            <!-- Ticker items will be populated by JS -->
+    <div class="controls">
+        <div class="controls-inner">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Search news...">
+            </div>
+            <div class="filter-tags">
+            <div class="tag-filter active" data-tag="all">All</div>
+            <div class="tag-filter" data-tag="bull">Bull</div>
+            <div class="tag-filter" data-tag="bear">Bear</div>
+            <div class="tag-filter" data-tag="akuisisi">Akuisisi</div>
+            <div class="tag-filter" data-tag="right-issue">Right Issue</div>
+            <div class="tag-filter" data-tag="dividend">Dividend</div>
+            <div class="tag-filter" data-tag="ipo">IPO</div>
+            <div class="tag-filter" data-tag="buyback">Buyback</div>
+            <div class="tag-filter" data-tag="merger">Merger</div>
+            <div class="tag-filter" data-tag="earning">Earning</div>
+        </div>
+        </div>
+    <div class="container">
+        <div class="news-grid" id="newsGrid">
+            <div class="loading">Loading news...</div>
         </div>
     </div>
 
-    <!-- Main Content -->
-    <main class="main-container">
-        <!-- Crypto Panel -->
-        <div class="panel panel-crypto">
-            <div class="panel-header">
-                <div class="panel-title">
-                    <div class="panel-icon">₿</div>
-                    <span>CRYPTO</span>
-                </div>
-                <span class="panel-badge" id="cryptoCount">0 items</span>
-            </div>
-            <div class="market-stats" id="cryptoStats">
-                <div class="stat-item">
-                    <span class="stat-label">BTC</span>
-                    <span class="stat-value" id="btcPrice">Loading...</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">ETH</span>
-                    <span class="stat-value" id="ethPrice">Loading...</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Fear & Greed</span>
-                    <span class="stat-value" id="fearGreed">--</span>
-                </div>
-            </div>
-            <div class="filter-tabs">
-                <div class="filter-tab active" data-filter="all">All</div>
-                <div class="filter-tab" data-filter="bitcoin">Bitcoin</div>
-                <div class="filter-tab" data-filter="ethereum">Ethereum</div>
-                <div class="filter-tab" data-filter="defi">DeFi</div>
-            </div>
-            <div class="panel-content" id="cryptoNews">
-                <div class="loading">
-                    <div class="loading-spinner"></div>
-                    <div class="loading-text">Fetching crypto news...</div>
-                </div>
-            </div>
-        </div>
+    <button class="add-news-btn" onclick="openModal()">+</button>
 
-        <!-- Indonesia Market Panel -->
-        <div class="panel panel-indonesia">
-            <div class="panel-header">
-                <div class="panel-title">
-                    <div class="panel-icon">🇮🇩</div>
-                    <span>INDONESIA</span>
+    <div id="newsModal" class="modal">
+        <div class="modal-content">
+            <h2>Add News Article</h2>
+            <form id="newsForm">
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" id="newsTitle" required>
                 </div>
-                <span class="panel-badge" id="indonesiaCount">0 items</span>
-            </div>
-            <div class="market-stats" id="indonesiaStats">
-                <div class="stat-item">
-                    <span class="stat-label">IHSG</span>
-                    <span class="stat-value" id="ihsgValue">--</span>
+                <div class="form-group">
+                    <label>Excerpt</label>
+                    <textarea id="newsExcerpt" required></textarea>
                 </div>
-                <div class="stat-item">
-                    <span class="stat-label">USD/IDR</span>
-                    <span class="stat-value" id="idrValue">--</span>
+                <div class="form-group">
+                    <label>Source</label>
+                    <input type="text" id="newsSource" placeholder="e.g., CNBC Indonesia, Kontan">
                 </div>
-                <div class="stat-item">
-                    <span class="stat-label">BI Rate</span>
-                    <span class="stat-value" id="biRate">--</span>
+                <div class="form-group">
+                    <label>Tags (hold Ctrl to select multiple)</label>
+                    <select id="newsTags" multiple size="5">
+                        <option value="bull">Bull</option>
+                        <option value="bear">Bear</option>
+                        <option value="akuisisi">Akuisisi</option>
+                        <option value="right-issue">Right Issue</option>
+                        <option value="dividend">Dividend</option>
+                        <option value="ipo">IPO</option>
+                        <option value="buyback">Buyback</option>
+                        <option value="merger">Merger</option>
+                        <option value="earning">Earning</option>
+                    </select>
                 </div>
-            </div>
-            <div class="filter-tabs">
-                <div class="filter-tab active" data-filter="all">All</div>
-                <div class="filter-tab" data-filter="ihsg">IHSG</div>
-                <div class="filter-tab" data-filter="saham">Saham</div>
-                <div class="filter-tab" data-filter="rupiah">Rupiah</div>
-            </div>
-            <div class="panel-content" id="indonesiaNews">
-                <div class="loading">
-                    <div class="loading-spinner"></div>
-                    <div class="loading-text">Fetching Indonesia news...</div>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add News</button>
                 </div>
-            </div>
-        </div>
-
-        <!-- Global Market Panel -->
-        <div class="panel panel-global">
-            <div class="panel-header">
-                <div class="panel-title">
-                    <div class="panel-icon">🌐</div>
-                    <span>GLOBAL MARKET</span>
-                </div>
-                <span class="panel-badge" id="globalCount">0 items</span>
-            </div>
-            <div class="market-stats" id="globalStats">
-                <div class="stat-item">
-                    <span class="stat-label">S&P 500</span>
-                    <span class="stat-value" id="spyValue">--</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">NASDAQ</span>
-                    <span class="stat-value" id="qqqValue">--</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">DXY</span>
-                    <span class="stat-value" id="dxyValue">--</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Gold</span>
-                    <span class="stat-value" id="goldValue">--</span>
-                </div>
-            </div>
-            <div class="filter-tabs">
-                <div class="filter-tab active" data-filter="all">All</div>
-                <div class="filter-tab" data-filter="stock">Stocks</div>
-                <div class="filter-tab" data-filter="fed">Fed</div>
-                <div class="filter-tab" data-filter="earnings">Earnings</div>
-            </div>
-            <div class="panel-content" id="globalNews">
-                <div class="loading">
-                    <div class="loading-spinner"></div>
-                    <div class="loading-text">Fetching global news...</div>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <!-- Command Bar -->
-    <div class="command-bar">
-        <div class="command-input">
-            <span class="command-prompt">$</span>
-            <input type="text" class="command-field" id="commandField" placeholder="Type 'help' for commands, or search news..." autocomplete="off">
+            </form>
         </div>
     </div>
 
     <script>
-        // Configuration
-        const CONFIG = {
-            refreshInterval: 5 * 60 * 1000, // 5 minutes
-            maxNewsItems: 50,
-            fetchTimeout: 10000 // 10 second timeout per feed
-        };
-
-        // CORS Proxies (fallback chain - if one fails, try next)
-        const CORS_PROXIES = [
-            (url) => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
-            (url) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
-            (url) => `https://corsproxy.io/?${encodeURIComponent(url)}`
+        const NEWS_FEEDS = [
+            {
+                url: 'https://finance.detik.com/rss',
+                source: 'Detik Finance'
+            },
+            {
+                url: 'https://investasi.kontan.co.id/rss',
+                source: 'Kontan Investasi'
+            },
+            {
+                url: 'https://www.cnbcindonesia.com/market/rss',
+                source: 'CNBC Indonesia'
+            }
         ];
 
-        // RSS Feed Sources (verified working feeds)
-        const RSS_FEEDS = {
-            crypto: [
-                { url: 'https://cointelegraph.com/rss', name: 'CoinTelegraph' },
-                { url: 'https://decrypt.co/feed', name: 'Decrypt' },
-                { url: 'https://www.coindesk.com/arc/outboundfeeds/rss/', name: 'CoinDesk' },
-                { url: 'https://bitcoinist.com/feed/', name: 'Bitcoinist' },
-                { url: 'https://cryptopotato.com/feed/', name: 'CryptoPotato' }
-            ],
-            indonesia: [
-                { url: 'https://www.cnbcindonesia.com/market/rss', name: 'CNBC ID Market' },
-                { url: 'https://en.antaranews.com/rss/news.xml', name: 'Antara News' },
-                { url: 'https://id.investing.com/rss/news.rss', name: 'Investing ID' }
-            ],
-            global: [
-                { url: 'https://www.cnbc.com/id/100003114/device/rss/rss.html', name: 'CNBC Top News' },
-                { url: 'https://www.cnbc.com/id/10000664/device/rss/rss.html', name: 'CNBC Finance' },
-                { url: 'https://www.cnbc.com/id/15839135/device/rss/rss.html', name: 'CNBC Stocks' },
-                { url: 'https://feeds.content.dowjones.io/public/rss/mw_topstories', name: 'MarketWatch' },
-                { url: 'https://feeds.content.dowjones.io/public/rss/mw_marketpulse', name: 'MW MarketPulse' },
-                { url: 'https://www.reutersagency.com/feed/?taxonomy=best-sectors&post_type=best', name: 'Reuters' }
-            ]
+        let newsData = [];
+        let filteredNews = [];
+        let activeFilter = 'all';
+        let isLoading = false;
+
+        // Theme management
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            
+            updateThemeButton(newTheme);
+        }
+
+        function updateThemeButton(theme) {
+            const icon = document.getElementById('themeIcon');
+            
+            if (theme === 'dark') {
+                // Dark mode: show white sun
+                icon.textContent = '☀';
+                icon.style.color = '#ffffff';
+            } else {
+                // Light mode: show dark moon
+                icon.textContent = '☾';
+                icon.style.color = '#1a1a1a';
+            }
+        }
+
+        // Initialize theme
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            updateThemeButton(savedTheme);
+        }
+
+        // Call initTheme on page load
+        initTheme();
+
+        const TAG_KEYWORDS = {
+            'bull': ['naik', 'reli', 'menguat', 'positif', 'tumbuh', 'profit', 'laba meningkat', 'ekspansi', 'pertumbuhan', 'rebound'],
+            'bear': ['turun', 'melemah', 'jatuh', 'terkoreksi', 'negatif', 'rugi', 'penurunan', 'anjlok', 'susut', 'merosot'],
+            'akuisisi': ['akuisisi', 'mengakuisisi', 'membeli', 'pembelian saham', 'take over', 'ambil alih'],
+            'right-issue': ['right issue', 'hmetd', 'penambahan modal', 'tambah modal'],
+            'dividend': ['dividen', 'dividen interim', 'dividen final', 'pembagian dividen', 'bagi dividen'],
+            'ipo': ['ipo', 'penawaran umum perdana', 'listing', 'melantai', 'pencatatan saham'],
+            'buyback': ['buyback', 'beli kembali', 'pembelian kembali saham'],
+            'merger': ['merger', 'penggabungan', 'konsolidasi', 'bergabung'],
+            'earning': ['laba', 'rugi', 'laporan keuangan', 'kinerja keuangan', 'pendapatan', 'profit', 'revenue']
         };
 
-        // Track feed status for debugging
-        let feedStatus = {};
+        function autoTagNews(title, description) {
+            const text = (title + ' ' + description).toLowerCase();
+            const tags = [];
 
-        // State
-        let allNews = {
-            crypto: [],
-            indonesia: [],
-            global: []
-        };
+            for (const [tag, keywords] of Object.entries(TAG_KEYWORDS)) {
+                if (keywords.some(keyword => text.includes(keyword))) {
+                    tags.push(tag);
+                }
+            }
 
-        // Clock Update
-        function updateClock() {
+            return tags.length > 0 ? tags : ['default'];
+        }
+
+        function getRelativeTime(date) {
             const now = new Date();
-            const timeStr = now.toLocaleTimeString('en-US', { hour12: false });
-            document.getElementById('clock').textContent = timeStr;
-        }
-        setInterval(updateClock, 1000);
-        updateClock();
+            const diff = now - date;
+            const minutes = Math.floor(diff / 60000);
+            const hours = Math.floor(minutes / 60);
+            const days = Math.floor(hours / 24);
 
-        // Fetch with timeout
-        function fetchWithTimeout(url, timeout = CONFIG.fetchTimeout) {
-            return Promise.race([
-                fetch(url),
-                new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error('Timeout')), timeout)
-                )
-            ]);
+            if (minutes < 1) return 'Just now';
+            if (minutes < 60) return `${minutes} min ago`;
+            if (hours < 24) return `${hours}h ago`;
+            if (days < 7) return `${days}d ago`;
+            return date.toLocaleDateString('id-ID');
         }
 
-        // Fetch RSS with proxy fallback chain
-        async function fetchRSS(feedUrl, sourceName) {
-            for (let i = 0; i < CORS_PROXIES.length; i++) {
-                try {
-                    const proxyUrl = CORS_PROXIES[i](feedUrl);
-                    const response = await fetchWithTimeout(proxyUrl);
-                    
-                    // allorigins returns JSON wrapper, others return raw text
-                    let xmlText;
-                    const contentType = response.headers.get('content-type') || '';
-                    
-                    if (contentType.includes('application/json') || proxyUrl.includes('allorigins')) {
-                        const data = await response.json();
-                        xmlText = data.contents;
-                    } else {
-                        xmlText = await response.text();
-                    }
+        async function fetchNews() {
+            if (isLoading) return;
+            isLoading = true;
 
-                    if (xmlText) {
-                        const results = parseRSS(xmlText, sourceName);
-                        if (results.length > 0) {
-                            feedStatus[sourceName] = { status: 'ok', count: results.length, proxy: i };
-                            console.log(`✅ ${sourceName}: ${results.length} items (proxy ${i})`);
-                            return results;
-                        }
-                    }
-                } catch (error) {
-                    console.warn(`⚠️ ${sourceName} proxy ${i} failed:`, error.message);
-                    continue; // Try next proxy
-                }
-            }
+            const newsGrid = document.getElementById('newsGrid');
+            const refreshBtn = document.getElementById('refreshBtn');
             
-            feedStatus[sourceName] = { status: 'failed', count: 0 };
-            console.error(`❌ ${sourceName}: All proxies failed`);
-            return [];
-        }
+            newsGrid.innerHTML = '<div class="loading">Loading real-time news...</div>';
+            refreshBtn.classList.add('loading');
+            refreshBtn.textContent = '⟳';
 
-        // Parse RSS XML
-        function parseRSS(xmlString, sourceName) {
             try {
-                const parser = new DOMParser();
-                const xml = parser.parseFromString(xmlString, 'text/xml');
+                const allNews = [];
                 
-                // Check for parse errors
-                const parseError = xml.querySelector('parsererror');
-                if (parseError) {
-                    console.warn(`XML parse error for ${sourceName}`);
-                    return [];
+                for (const feed of NEWS_FEEDS) {
+                    try {
+                        const response = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feed.url)}`);
+                        const data = await response.json();
+
+                        if (data.status === 'ok' && data.items) {
+                            data.items.forEach((item, index) => {
+                                const pubDate = new Date(item.pubDate);
+                                const tags = autoTagNews(item.title, item.description || '');
+                                
+                                const tempDiv = document.createElement('div');
+                                tempDiv.innerHTML = item.description || item.content || '';
+                                const excerpt = tempDiv.textContent.trim().substring(0, 200) + '...';
+
+                                allNews.push({
+                                    id: `${feed.source}-${index}-${Date.now()}`,
+                                    title: item.title,
+                                    excerpt: excerpt,
+                                    tags: tags,
+                                    source: feed.source,
+                                    time: getRelativeTime(pubDate),
+                                    pubDate: pubDate,
+                                    link: item.link
+                                });
+                            });
+                        }
+                    } catch (error) {
+                        console.error(`Error fetching ${feed.source}:`, error);
+                    }
                 }
 
-                const items = xml.querySelectorAll('item');
-                const news = [];
+                allNews.sort((a, b) => b.pubDate - a.pubDate);
+                newsData = allNews;
+                filterNews(activeFilter);
 
-                items.forEach((item, index) => {
-                    if (index >= 15) return; // Limit per source
-                    
-                    const title = item.querySelector('title')?.textContent || '';
-                    const description = item.querySelector('description')?.textContent || '';
-                    const pubDate = item.querySelector('pubDate')?.textContent || '';
-                    
-                    // Robust link extraction: try multiple methods
-                    let link = '';
-                    const linkEl = item.querySelector('link');
-                    if (linkEl) {
-                        // Method 1: textContent
-                        link = linkEl.textContent.trim();
-                        // Method 2: if empty, check next sibling text node
-                        if (!link && linkEl.nextSibling && linkEl.nextSibling.nodeType === 3) {
-                            link = linkEl.nextSibling.textContent.trim();
-                        }
-                        // Method 3: href attribute (Atom-style)
-                        if (!link) {
-                            link = linkEl.getAttribute('href') || '';
-                        }
-                    }
-                    // Method 4: guid as fallback
-                    if (!link) {
-                        link = item.querySelector('guid')?.textContent || '';
-                    }
-
-                    if (!title) return; // Skip items without titles
-
-                    news.push({
-                        title: cleanHTML(title),
-                        description: cleanHTML(description).substring(0, 200),
-                        link,
-                        pubDate: pubDate ? new Date(pubDate) : new Date(),
-                        source: sourceName,
-                        sentiment: analyzeSentiment(title + ' ' + description)
-                    });
-                });
-
-                return news;
+                console.log(`Loaded ${newsData.length} articles from ${NEWS_FEEDS.length} sources`);
+                
             } catch (error) {
-                console.error('RSS Parse Error:', error);
-                return [];
+                console.error('Error fetching news:', error);
+                newsGrid.innerHTML = '<div class="loading">Error loading news. Click refresh to try again.</div>';
+            } finally {
+                isLoading = false;
+                refreshBtn.classList.remove('loading');
+                refreshBtn.textContent = '↻';
             }
         }
 
-        // Clean HTML from strings
-        function cleanHTML(str) {
-            const div = document.createElement('div');
-            div.innerHTML = str;
-            return (div.textContent || div.innerText || '').trim();
-        }
+        function renderNews() {
+            const newsGrid = document.getElementById('newsGrid');
+            newsGrid.innerHTML = '';
 
-        // Simple sentiment analysis
-        function analyzeSentiment(text) {
-            const lowerText = text.toLowerCase();
-            const bullishWords = ['surge', 'rally', 'gain', 'rise', 'bull', 'growth', 'positive', 'up', 'high', 'record', 'soar', 'boost', 'profit', 'beat', 'success'];
-            const bearishWords = ['crash', 'drop', 'fall', 'bear', 'loss', 'negative', 'down', 'low', 'fear', 'plunge', 'decline', 'sell', 'fail', 'miss', 'warning'];
-            
-            let score = 0;
-            bullishWords.forEach(word => {
-                if (lowerText.includes(word)) score++;
-            });
-            bearishWords.forEach(word => {
-                if (lowerText.includes(word)) score--;
-            });
-
-            if (score > 0) return 'bullish';
-            if (score < 0) return 'bearish';
-            return 'neutral';
-        }
-
-        // Format time ago
-        function timeAgo(date) {
-            const seconds = Math.floor((new Date() - date) / 1000);
-            
-            if (seconds < 60) return 'Just now';
-            if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
-            if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
-            return `${Math.floor(seconds / 86400)}d ago`;
-        }
-
-        // Render news items
-        function renderNews(news, containerId, category) {
-            const container = document.getElementById(containerId);
-            
-            if (news.length === 0) {
-                // Show which feeds failed
-                const categoryFeeds = RSS_FEEDS[category];
-                const failedFeeds = categoryFeeds
-                    .filter(f => feedStatus[f.name]?.status === 'failed')
-                    .map(f => f.name);
-                
-                container.innerHTML = `
-                    <div class="error-message">
-                        <div class="error-icon">📡</div>
-                        <div>Unable to fetch news from any source.</div>
-                        ${failedFeeds.length > 0 ? `<div style="font-size:0.75rem; margin-top:0.5rem; color:var(--text-muted)">Failed: ${failedFeeds.join(', ')}</div>` : ''}
-                        <div style="font-size:0.75rem; margin-top:0.5rem; color:var(--text-muted)">Try refreshing or check browser console (F12)</div>
-                    </div>
-                `;
+            if (filteredNews.length === 0) {
+                newsGrid.innerHTML = '<div class="loading">No news found</div>';
                 return;
             }
 
-            // Sort by date
-            news.sort((a, b) => b.pubDate - a.pubDate);
-
-            let html = '';
-            news.forEach((item, index) => {
-                const sentimentClass = `sentiment-${item.sentiment}`;
-                const sentimentLabel = item.sentiment.charAt(0).toUpperCase() + item.sentiment.slice(1);
+            filteredNews.forEach(news => {
+                const card = document.createElement('div');
+                card.className = 'news-card';
+                if (news.link) {
+                    card.onclick = () => window.open(news.link, '_blank');
+                }
                 
-                html += `
-                    <div class="news-item" onclick="window.open('${item.link}', '_blank')">
-                        <div class="news-meta">
-                            <span class="news-source">${item.source}</span>
-                            <span class="news-time">${timeAgo(item.pubDate)}</span>
-                            <span class="news-sentiment ${sentimentClass}">${sentimentLabel}</span>
-                        </div>
-                        <div class="news-title">${item.title}</div>
-                        ${item.description ? `<div class="news-description">${item.description}</div>` : ''}
+                const tagsHtml = news.tags.map(tag => 
+                    `<span class="tag ${tag}">${tag.replace('-', ' ')}</span>`
+                ).join('');
+
+                card.innerHTML = `
+                    <div class="news-header">
+                        <div class="news-time">${news.time}</div>
                     </div>
+                    <div class="news-title">${news.title}</div>
+                    <div class="news-excerpt">${news.excerpt}</div>
+                    <div class="news-tags">${tagsHtml}</div>
+                    <div class="news-source">${news.source}</div>
                 `;
-            });
 
-            container.innerHTML = html;
-            
-            // Update count
-            const countId = category + 'Count';
-            document.getElementById(countId).textContent = `${news.length} items`;
-        }
-
-        // Fetch all news for a category
-        async function fetchCategoryNews(category) {
-            const feeds = RSS_FEEDS[category];
-            const allItems = [];
-
-            const promises = feeds.map(feed => fetchRSS(feed.url, feed.name));
-            const results = await Promise.all(promises);
-            
-            results.forEach(items => {
-                allItems.push(...items);
-            });
-
-            return allItems;
-        }
-
-        // Fetch crypto prices
-        async function fetchCryptoPrices() {
-            try {
-                const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true');
-                const data = await response.json();
-                
-                const btcPrice = data.bitcoin.usd.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-                const btcChange = data.bitcoin.usd_24h_change.toFixed(2);
-                const ethPrice = data.ethereum.usd.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-                const ethChange = data.ethereum.usd_24h_change.toFixed(2);
-
-                document.getElementById('btcPrice').textContent = `${btcPrice}`;
-                document.getElementById('btcPrice').className = `stat-value ${btcChange >= 0 ? 'positive' : 'negative'}`;
-                
-                document.getElementById('ethPrice').textContent = `${ethPrice}`;
-                document.getElementById('ethPrice').className = `stat-value ${ethChange >= 0 ? 'positive' : 'negative'}`;
-            } catch (error) {
-                console.error('Error fetching crypto prices:', error);
-            }
-        }
-
-        // Fetch Fear & Greed Index
-        async function fetchFearGreed() {
-            try {
-                const response = await fetch('https://api.alternative.me/fng/');
-                const data = await response.json();
-                const value = data.data[0].value;
-                const classification = data.data[0].value_classification;
-                
-                document.getElementById('fearGreed').textContent = `${value} (${classification})`;
-                document.getElementById('fearGreed').className = `stat-value ${value > 50 ? 'positive' : 'negative'}`;
-            } catch (error) {
-                console.error('Error fetching Fear & Greed:', error);
-            }
-        }
-
-        // Update ticker tape
-        function updateTicker() {
-            const tickerItems = [
-                { symbol: 'BTC', price: '$67,234', change: '+2.34%', positive: true },
-                { symbol: 'ETH', price: '$3,456', change: '+1.23%', positive: true },
-                { symbol: 'SPY', price: '$523.45', change: '-0.45%', positive: false },
-                { symbol: 'QQQ', price: '$445.67', change: '+0.89%', positive: true },
-                { symbol: 'AAPL', price: '$178.23', change: '+1.12%', positive: true },
-                { symbol: 'NVDA', price: '$923.45', change: '+3.45%', positive: true },
-                { symbol: 'GOLD', price: '$2,345', change: '+0.56%', positive: true },
-                { symbol: 'DXY', price: '104.23', change: '-0.23%', positive: false },
-                { symbol: 'IHSG', price: '7,500', change: '+0.56%', positive: true },
-                { symbol: 'IDR', price: '17,095', change: '-0.15%', positive: false },
-            ];
-
-            let html = '';
-            // Duplicate for seamless scroll
-            for (let i = 0; i < 2; i++) {
-                tickerItems.forEach(item => {
-                    html += `
-                        <div class="ticker-item">
-                            <span class="ticker-symbol">${item.symbol}</span>
-                            <span class="ticker-price">${item.price}</span>
-                            <span class="ticker-change ${item.positive ? 'positive' : 'negative'}">${item.change}</span>
-                        </div>
-                    `;
-                });
-            }
-            document.getElementById('tickerContent').innerHTML = html;
-        }
-
-        // Refresh all feeds
-        async function refreshAllFeeds() {
-            const btn = document.querySelector('.refresh-btn');
-            btn.classList.add('refreshing');
-            feedStatus = {}; // Reset status
-
-            // Show loading
-            ['cryptoNews', 'indonesiaNews', 'globalNews'].forEach(id => {
-                document.getElementById(id).innerHTML = `
-                    <div class="loading">
-                        <div class="loading-spinner"></div>
-                        <div class="loading-text">Fetching news...</div>
-                    </div>
-                `;
-            });
-
-            // Fetch all categories in parallel
-            const [cryptoNews, indonesiaNews, globalNews] = await Promise.all([
-                fetchCategoryNews('crypto'),
-                fetchCategoryNews('indonesia'),
-                fetchCategoryNews('global')
-            ]);
-
-            allNews.crypto = cryptoNews;
-            allNews.indonesia = indonesiaNews;
-            allNews.global = globalNews;
-
-            renderNews(cryptoNews, 'cryptoNews', 'crypto');
-            renderNews(indonesiaNews, 'indonesiaNews', 'indonesia');
-            renderNews(globalNews, 'globalNews', 'global');
-
-            // Log summary
-            const total = cryptoNews.length + indonesiaNews.length + globalNews.length;
-            const failed = Object.values(feedStatus).filter(s => s.status === 'failed').length;
-            const ok = Object.values(feedStatus).filter(s => s.status === 'ok').length;
-            console.log(`📊 Feed Summary: ${total} articles | ${ok} feeds OK | ${failed} feeds failed`);
-
-            // Update last update time
-            document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString('en-US', { hour12: false });
-            
-            btn.classList.remove('refreshing');
-        }
-
-        // Command handling
-        document.getElementById('commandField').addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                const command = this.value.trim().toLowerCase();
-                handleCommand(command);
-                this.value = '';
-            }
-        });
-
-        function handleCommand(cmd) {
-            if (cmd === 'help') {
-                alert(`Available Commands:
-- refresh: Refresh all news feeds
-- crypto: Focus on crypto panel
-- macro: Focus on macro panel  
-- stocks: Focus on stocks panel
-- clear: Clear command
-- [search term]: Search news for keyword`);
-            } else if (cmd === 'refresh') {
-                refreshAllFeeds();
-            } else if (cmd === 'clear') {
-                // Clear handled by input
-            } else if (cmd) {
-                // Search functionality
-                searchNews(cmd);
-            }
-        }
-
-        function searchNews(query) {
-            const lowerQuery = query.toLowerCase();
-            
-            ['crypto', 'indonesia', 'global'].forEach(category => {
-                const filtered = allNews[category].filter(item => 
-                    item.title.toLowerCase().includes(lowerQuery) ||
-                    item.description.toLowerCase().includes(lowerQuery)
-                );
-                const containerId = category + 'News';
-                renderNews(filtered.length > 0 ? filtered : allNews[category], containerId, category);
+                newsGrid.appendChild(card);
             });
         }
 
-        // Filter tabs
-        document.querySelectorAll('.filter-tab').forEach(tab => {
-            tab.addEventListener('click', function() {
-                const parent = this.closest('.panel');
-                parent.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
-                this.classList.add('active');
-                
-                const filter = this.dataset.filter;
-                const category = parent.classList.contains('panel-crypto') ? 'crypto' :
-                               parent.classList.contains('panel-indonesia') ? 'indonesia' : 'global';
-                
-                if (filter === 'all') {
-                    renderNews(allNews[category], category + 'News', category);
-                } else {
-                    const filtered = allNews[category].filter(item => 
-                        item.title.toLowerCase().includes(filter) ||
-                        item.description.toLowerCase().includes(filter)
-                    );
-                    renderNews(filtered, category + 'News', category);
+        function filterNews(tag) {
+            activeFilter = tag;
+            
+            document.querySelectorAll('.tag-filter').forEach(el => {
+                el.classList.remove('active');
+                if (el.dataset.tag === tag) {
+                    el.classList.add('active');
                 }
             });
-        });
 
-        // Initialize
-        async function init() {
-            updateTicker();
-            fetchCryptoPrices();
-            fetchFearGreed();
-            await refreshAllFeeds();
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
 
-            // Auto refresh
-            setInterval(refreshAllFeeds, CONFIG.refreshInterval);
-            setInterval(fetchCryptoPrices, 60000); // Every minute
+            if (tag === 'all') {
+                filteredNews = newsData.filter(news => 
+                    news.title.toLowerCase().includes(searchTerm) ||
+                    news.excerpt.toLowerCase().includes(searchTerm)
+                );
+            } else {
+                filteredNews = newsData.filter(news => 
+                    news.tags.includes(tag) &&
+                    (news.title.toLowerCase().includes(searchTerm) ||
+                    news.excerpt.toLowerCase().includes(searchTerm))
+                );
+            }
+
+            renderNews();
         }
 
-        // Start
-        init();
+        function searchNews() {
+            filterNews(activeFilter);
+        }
+
+        function openModal() {
+            document.getElementById('newsModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('newsModal').style.display = 'none';
+            document.getElementById('newsForm').reset();
+        }
+
+        document.querySelectorAll('.tag-filter').forEach(el => {
+            el.addEventListener('click', () => filterNews(el.dataset.tag));
+        });
+
+        document.getElementById('searchInput').addEventListener('input', searchNews);
+
+        document.getElementById('newsForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const title = document.getElementById('newsTitle').value;
+            const excerpt = document.getElementById('newsExcerpt').value;
+            const source = document.getElementById('newsSource').value || 'User Submitted';
+            const selectedTags = Array.from(document.getElementById('newsTags').selectedOptions)
+                .map(opt => opt.value);
+
+            const newNews = {
+                id: Date.now(),
+                title,
+                excerpt,
+                tags: selectedTags.length > 0 ? selectedTags : ['default'],
+                source,
+                time: 'Just now',
+                pubDate: new Date()
+            };
+
+            newsData.unshift(newNews);
+            filterNews(activeFilter);
+            closeModal();
+        });
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('newsModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+
+        fetchNews();
+
+        setInterval(fetchNews, 5 * 60 * 1000);
+
+        setInterval(() => {
+            newsData.forEach(news => {
+                news.time = getRelativeTime(news.pubDate);
+            });
+            renderNews();
+        }, 60000);
     </script>
 </body>
 </html>
