@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>News Aggregator - Real-Time</title>
+    <title>News Aggregator</title>
     <style>
         :root {
             --bg-primary: #ffffff;
@@ -13,73 +13,51 @@
             --text-primary: #1a1a1a;
             --text-secondary: #6c757d;
             --text-tertiary: #adb5bd;
-            --border-color: #dee2e6;
-            --accent-color: #2c3e50;
-            --hover-bg: #f1f3f5;
-            --title-color: #2c3e50;
-            --tag-bull-bg: #d4edda;
-            --tag-bull-text: #155724;
-            --tag-bear-bg: #f8d7da;
-            --tag-bear-text: #721c24;
-            --tag-other-bg: #d1ecf1;
-            --tag-other-text: #0c5460;
+            --border: #dee2e6;
+            --accent: #2c3e50;
+            --hover: #f1f3f5;
+            --title: #2c3e50;
         }
 
         [data-theme="dark"] {
-            --bg-primary: #1a1a1a;
-            --bg-secondary: #2d2d2d;
+            --bg-primary: #2d2d2d;
+            --bg-secondary: #1a1a1a;
             --bg-card: #242424;
             --bg-dock: #2d2d2d8e;
             --text-primary: #e8e8e8;
             --text-secondary: #b0b0b0;
             --text-tertiary: #707070;
-            --border-color: #404040;
-            --accent-color: #4a9eff;
-            --hover-bg: #2f2f2f;
-            --title-color: #f1c40f;
-            --tag-bull-bg: rgba(40, 167, 69, 0.2);
-            --tag-bull-text: #5dd879;
-            --tag-bear-bg: rgba(220, 53, 69, 0.2);
-            --tag-bear-text: #ff6b7a;
-            --tag-other-bg: rgba(23, 162, 184, 0.2);
-            --tag-other-text: #17a2b8;
+            --border: #404040;
+            --accent: #4a9eff;
+            --hover: #2f2f2f;
+            --title: #f1c40f;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background-color: var(--bg-primary);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
             color: var(--text-primary);
             line-height: 1.6;
-            transition: background-color 0.3s ease, color 0.3s ease;
+            transition: background-color 0.3s;
         }
 
         .header {
-            background: var(--bg-secondary);
+            background: rgba(248, 249, 250, 0.8);
             padding: 1.5rem;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border);
             position: sticky;
             top: 0;
             z-index: 100;
             backdrop-filter: blur(20px);
-            background: rgba(248, 249, 250, 0.8);
         }
 
-        [data-theme="dark"] .header {
-            background: rgba(26, 26, 26, 0.8);
-        }
+        [data-theme="dark"] .header { background: rgba(26, 26, 26, 0.8); }
 
         .header-content {
             max-width: 1400px;
             margin: 0 auto;
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
         }
 
         .header-top {
@@ -89,23 +67,19 @@
         }
 
         .header h1 {
-            color: var(--text-primary);
             font-size: 2rem;
             font-weight: 600;
-            flex: 1;
         }
 
-        .header .subtitle {
+        .subtitle {
             color: var(--text-secondary);
             font-size: 0.813rem;
             margin-top: 0.25rem;
-            font-weight: 400;
         }
 
         .header-actions {
             display: flex;
-            gap: 0.75rem;
-            align-items: center;
+            gap: 1rem;
         }
 
         .dock {
@@ -113,15 +87,14 @@
             bottom: 2rem;
             left: 50%;
             transform: translateX(-50%);
-            border: 1px solid var(--border-color);
-
             display: flex;
             gap: 1rem;
             padding: 0.35rem 1rem;
             background: var(--bg-dock);
+            border: 1px solid var(--border);
             border-radius: 25rem;
             backdrop-filter: blur(4px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.10);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
         }
 
         .dock-item {
@@ -134,7 +107,6 @@
             font-size: 0.938rem;
             font-weight: 600;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            letter-spacing: -0.2px;
         }
 
         .dock-item:hover {
@@ -144,79 +116,43 @@
 
         .dock-item.active {
             background: var(--bg-card);
-            color: var(--accent-color);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            color: var(--accent);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
-        [data-theme="dark"] .dock-item.active {
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-        }
-
-        .theme-toggle {
-            padding: 0.5rem;
+        .theme-toggle, .refresh-btn {
+            width: 44px;
+            height: 44px;
             background: var(--bg-card);
+            color: var(--text-primary);
             border: none;
             border-radius: 50%;
             cursor: pointer;
             font-size: 1.25rem;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 44px;
-            height: 44px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         }
 
-        .theme-toggle span {
-            color: var(--text-primary);
-        }
-
-        .theme-toggle:hover {
-            background: var(--hover-bg);
+        .theme-toggle:hover, .refresh-btn:hover {
+            background: var(--hover);
             transform: scale(1.05);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
         }
 
-        .refresh-btn {
-            padding: 0.5rem;
-            background: var(--bg-card);
-            border: none;
-            border-radius: 50%;
-            color: var(--text-primary);
-            cursor: pointer;
-            font-size: 1.25rem;
-            font-weight: 500;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            width: 44px;
-            height: 44px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        }
-
-        .refresh-btn:hover {
-            background: var(--hover-bg);
-            transform: scale(1.05) rotate(90deg);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-        }
-
-        .refresh-btn.loading {
-            opacity: 0.6;
-            cursor: not-allowed;
-            animation: spin 1s linear infinite;
-        }
+        .refresh-btn:hover { transform: scale(1.05) rotate(90deg); }
+        .refresh-btn.loading { opacity: 0.6; animation: spin 1s linear infinite; }
 
         @keyframes spin {
-            from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
         }
 
         .controls {
             background: var(--bg-secondary);
             padding: 1rem 1.5rem;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border);
         }
 
         .controls-inner {
@@ -225,7 +161,6 @@
             display: flex;
             flex-wrap: wrap;
             gap: 0.75rem;
-            align-items: center;
         }
 
         .search-box {
@@ -237,17 +172,17 @@
             width: 100%;
             padding: 0.75rem 1.25rem;
             background: var(--bg-card);
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--border);
             border-radius: 12px;
             color: var(--text-primary);
-            font-size: 0.938rem;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 0.9rem;
+            transition: all 0.3s;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         }
 
         .search-box input:focus {
             outline: none;
-            border-color: var(--accent-color);
+            border-color: var(--accent);
             box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.1);
         }
 
@@ -255,9 +190,7 @@
             box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.2);
         }
 
-        .search-box input::placeholder {
-            color: var(--text-tertiary);
-        }
+        .search-box input::placeholder { color: var(--text-tertiary); }
 
         .filter-tags {
             display: flex;
@@ -272,22 +205,21 @@
             border-radius: 20px;
             color: var(--text-secondary);
             cursor: pointer;
-            font-size: 0.813rem;
+            font-size: 0.9rem;
             font-weight: 500;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            user-select: none;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         }
 
         .tag-filter:hover {
-            background: var(--hover-bg);
+            background: var(--hover);
             color: var(--text-primary);
             transform: translateY(-1px);
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
         .tag-filter.active {
-            background: var(--accent-color);
+            background: var(--accent);
             color: #ffffff;
             box-shadow: 0 4px 8px rgba(44, 62, 80, 0.2);
         }
@@ -311,23 +243,21 @@
 
         .news-card {
             background: var(--bg-card);
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--border);
             border-radius: 16px;
             padding: 1.75rem;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
-            position: relative;
             display: flex;
             flex-direction: column;
-            height: 100%;
-            min-height: 200px;
             width: 100%;
             max-width: 500px;
+            min-height: 200px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         }
 
         .news-card:hover {
-            border-color: var(--accent-color);
+            border-color: var(--accent);
             transform: translateY(-4px);
             box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
         }
@@ -336,28 +266,21 @@
             box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
         }
 
-        .news-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 0.75rem;
-        }
-
         .news-footer {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
-            margin-top: 0.75rem;
+            margin-top: auto;
         }
 
-        .news-time {
+        .news-time, .news-source {
             color: var(--text-tertiary);
             font-size: 0.813rem;
-            white-space: nowrap;
         }
 
+        .news-source { font-weight: 500; }
+
         .news-title {
-            color: var(--title-color);
+            color: var(--title);
             font-size: 1.063rem;
             font-weight: 600;
             margin-bottom: 0.75rem;
@@ -369,13 +292,13 @@
             font-size: 0.875rem;
             margin-bottom: 1rem;
             line-height: 1.6;
-            flex-grow: 1;
         }
 
         .news-tags {
             display: flex;
             flex-wrap: wrap;
             gap: 0.5rem;
+            margin-bottom: 0.75rem;
         }
 
         .tag {
@@ -385,82 +308,42 @@
             font-weight: 500;
             text-transform: uppercase;
             letter-spacing: 0.3px;
-            color: #0c5460;
             background: #d1ecf1;
+            color: #0c5460;
         }
 
         [data-theme="dark"] .tag {
             background: transparent;
-            color: var(--tag-other-text);
-            border: 1px solid var(--tag-other-text);
+            color: #17a2b8;
+            border: 1px solid #17a2b8;
         }
 
-        .tag.bull {
-            background: #d4edda;
-            color: #155724;
-        }
+        .tag.bull { background: #d4edda; color: #155724; }
         
         [data-theme="dark"] .tag.bull {
             background: transparent;
-            color: var(--tag-bull-text);
-            border: 1px solid var(--tag-bull-text);
+            color: #5dd879;
+            border: 1px solid #5dd879;
         }
 
-        .tag.bear {
-            background: #f8d7da;
-            color: #721c24;
-        }
+        .tag.bear { background: #f8d7da; color: #721c24; }
 
         [data-theme="dark"] .tag.bear {
             background: transparent;
-            color: var(--tag-bear-text);
-            border: 1px solid var(--tag-bear-text);
+            color: #ff6b7a;
+            border: 1px solid #ff6b7a;
         }
 
-        .tag.default {
-            display: none;
-        }
-
-        .news-source {
-            color: var(--text-tertiary);
-            font-size: 0.813rem;
-            font-weight: 500;
-        }
+        .tag.default { display: none; }
 
         @media (max-width: 768px) {
-            .header {
-                padding: 1rem;
-            }
-
-            .header h1 {
-                font-size: 1.25rem;
-            }
-
-            .container {
-                padding: 1.5rem 0rem;
-            }
-
-            .news-grid {
-                grid-template-columns: 1fr;
-                gap: 1rem;
-            }
-
-            .controls {
-                padding: 1rem;
-            }
-
-            .controls-inner {
-                flex-direction: column;
-            }
-
-            .search-box {
-                width: 100%;
-            }
-
-            .filter-tags {
-                width: 100%;
-                justify-content: flex-start;
-            }
+            .header { padding: 1rem; }
+            .header h1 { font-size: 1.25rem; }
+            .container { padding: 1.5rem 0; }
+            .news-grid { grid-template-columns: 1fr; gap: 1rem; }
+            .controls { padding: 1rem; }
+            .controls-inner { flex-direction: column; }
+            .search-box, .filter-tags { width: 100%; }
         }
     </style>
 </head>
@@ -499,76 +382,31 @@
         </div>
     </div>
 
-    <div class="dock">
-            <button class="dock-item active" data-category="idx" onclick="switchCategory('idx')">IDX</button>
-            <button class="dock-item" data-category="crypto" onclick="switchCategory('crypto')">Crypto</button>
+    <div class="dock" id="categoryDock">
+        <!-- Categories will be dynamically generated -->
     </div>
 
+    <!-- Load configuration first -->
+    <script src="config.js"></script>
+    
     <script>
-        const NEWS_FEEDS = [
-            {
-                url: 'https://finance.detik.com/rss',
-                source: 'Detik Finance',
-                category: 'idx'
-            },
-            {
-                url: 'https://investasi.kontan.co.id/rss',
-                source: 'Kontan Investasi',
-                category: 'idx'
-            },
-            {
-                url: 'https://www.cnbcindonesia.com/market/rss',
-                source: 'CNBC Indonesia',
-                category: 'idx'
-            },
-            {
-                url: 'https://feed.liputan6.com/rss/saham',
-                source: 'Liputan6',
-                category: 'idx'
-            },
-            {
-                url: 'https://sindikasi.idxchannel.com/rss/market-news',
-                source: 'IDXchanel',
-                category: 'idx'
-            },
-            {
-                url: 'https://stockwatch.id/category/market/feed/',
-                source: 'Stockwatch.id',
-                category: 'idx'
-            },
-            {
-                url: 'https://www.antaranews.com/rss/ekonomi-bursa.xml',
-                source: 'Antaranews',
-                category: 'idx'
-            },
-            {
-                url: 'https://cointelegraph.com/rss',
-                source: 'Cointelegraph',
-                category: 'crypto'
-            },
-            {
-                url: 'https://www.coindesk.com/arc/outboundfeeds/rss/',
-                source: 'CoinDesk',
-                category: 'crypto'
-            },
-            {
-                url: 'https://cryptoslate.com/feed/',
-                source: 'CryptoSlate',
-                category: 'crypto'
-            },
-            {
-                url: 'https://www.dlnews.com/arc/outboundfeeds/rss/category/articles/defi/',
-                source: 'Defilama (DeFi)',
-                category: 'crypto'
-            },
-            
-        ];
-
         let newsData = [];
         let filteredNews = [];
         let activeFilter = 'all';
-        let activeCategory = 'idx';
+        let activeCategory = Object.keys(NEWS_FEEDS)[0]; // First category
         let isLoading = false;
+
+        // Initialize dock with categories from config
+        function initDock() {
+            const dock = document.getElementById('categoryDock');
+            Object.keys(NEWS_FEEDS).forEach((category, index) => {
+                const isActive = index === 0 ? 'active' : '';
+                const label = CATEGORY_NAMES[category] || category.toUpperCase();
+                dock.insertAdjacentHTML('beforeend', 
+                    `<button class="dock-item ${isActive}" data-category="${category}" onclick="switchCategory('${category}')">${label}</button>`
+                );
+            });
+        }
 
         // Theme management
         function toggleTheme() {
@@ -603,21 +441,6 @@
             // Fetch news for this category
             fetchNews();
         }
-
-        const TAG_KEYWORDS = {
-            'idx':{
-            'bull': ['naik', 'reli', 'menguat', 'positif', 'tumbuh', 'profit', 'laba meningkat', 'ekspansi', 'pertumbuhan', 'rebound'],
-            'bear': ['turun', 'melemah', 'jatuh', 'terkoreksi', 'negatif', 'rugi', 'penurunan', 'anjlok', 'susut', 'merosot'],
-            'akuisisi': ['akuisisi', 'mengakuisisi', 'membeli', 'pembelian saham', 'take over', 'ambil alih'],
-            'penting': ['right issue', 'hmetd', 'penambahan modal', 'tambah modal','buyback', 'beli kembali', 'pembelian kembali saham','dividen','ipo','listing'],
-            'merger': ['merger', 'penggabungan', 'konsolidasi', 'bergabung'],
-            'earning': ['laba', 'rugi', 'laporan keuangan', 'kinerja keuangan', 'pendapatan', 'profit', 'revenue']
-        }, 'crypto': {
-            'bull': ['bullish', 'rally', 'pump', 'surge', 'spike', 'breakout','inflow', 'gain','all-time high', 'ath', 'accumulating'],
-            'bear': ['bearish', 'crash', 'dump', 'plunge', 'sell-off', 'correction','outflow','all-time low', 'liquidation', 'distribution'],
-            'regulation':['sec', 'etf', 'regulation', 'ban', 'lawsuit', 'approval'],
-            'security':['hack', 'exploit', 'rug pull', 'scam']
-        }};
 
         function autoTagNews(title, description) {
             const text = (title).toLowerCase();
@@ -660,8 +483,8 @@
             try {
                 const allNews = [];
                 
-                // Only fetch feeds for the active category
-                const categoryFeeds = NEWS_FEEDS.filter(feed => feed.category === activeCategory);
+                // Get feeds for the active category
+                const categoryFeeds = NEWS_FEEDS[activeCategory] || [];
                 
                 for (const feed of categoryFeeds) {
                     try {
@@ -683,7 +506,9 @@
                                     title: item.title,
                                     excerpt: excerpt,
                                     tags: tags,
-                                    source: feed.source,                                    category: feed.category,                                    time: getRelativeTime(pubDate),
+                                    source: feed.source,
+                                    category: activeCategory,
+                                    time: getRelativeTime(pubDate),
                                     pubDate: pubDate,
                                     link: item.link
                                 });
@@ -698,7 +523,7 @@
                 newsData = allNews;
                 filterNews(activeFilter);
 
-                console.log(`Loaded ${newsData.length} articles from ${NEWS_FEEDS.length} sources`);
+                console.log(`Loaded ${newsData.length} articles from ${categoryFeeds.length} sources`);
                 
             } catch (error) {
                 console.error('Error fetching news:', error);
@@ -713,9 +538,10 @@
         function renderNews() {
             //create tags based on keywords in title and description
             const dynamicTags = document.getElementById('dynamicTags');
-            dynamicTags.innerHTML = '<div class="tag-filter" data-tag="all">All</div>';
+            dynamicTags.innerHTML = `<div class="tag-filter ${activeFilter === 'all' ? 'active' : ''}" data-tag="all">All</div>`;
             Object.keys(TAG_KEYWORDS[activeCategory]).forEach(tag => {
-                const html = `<div class="tag-filter" data-tag="${tag}">${tag}</div>`;
+                const isActive = activeFilter === tag ? 'active' : '';
+                const html = `<div class="tag-filter ${isActive}" data-tag="${tag}">${tag}</div>`;
                 dynamicTags.insertAdjacentHTML('beforeend', html);
             });
 
@@ -789,18 +615,13 @@
           const el = e.target.closest('.tag-filter');
           if (!el) return;
 
-          activeTag = el.dataset.tag;
-
-          document.querySelectorAll('#dynamicTags .tag-filter').forEach(tag => {
-            tag.classList.remove('active');
-          });
-          el.classList.add('active');
-      
-          filterNews(activeTag);
+          filterNews(el.dataset.tag);
         });
 
         document.getElementById('searchInput').addEventListener('input', searchNews);
 
+        // Initialize app
+        initDock();
         fetchNews();
 
         setInterval(fetchNews, 5 * 60 * 1000);
