@@ -2,7 +2,7 @@
 const NEWS_FEEDS = {
     idx: [
         {
-            url: 'https://finance.detik.com/rss',
+            url: 'https://finance.detik.com/finansial/rss',
             source: 'Detik Finance'
         },
         {
@@ -15,19 +15,19 @@ const NEWS_FEEDS = {
         },
         {
             url: 'https://feed.liputan6.com/rss/saham',
-            source: 'Liputan6'
+            source: 'Liputan6 Saham'
         },
         {
             url: 'https://sindikasi.idxchannel.com/rss/market-news',
-            source: 'IDXchanel'
+            source: 'IDX Channel'
         },
         {
             url: 'https://stockwatch.id/category/market/feed/',
-            source: 'Stockwatch.id'
+            source: 'Stockwatch Market'
         },
         {
             url: 'https://www.antaranews.com/rss/ekonomi-bursa.xml',
-            source: 'Antaranews'
+            source: 'Antaranews Bursa'
         }
     ],
     crypto: [
@@ -45,7 +45,29 @@ const NEWS_FEEDS = {
         },
         {
             url: 'https://www.dlnews.com/arc/outboundfeeds/rss/category/articles/defi/',
-            source: 'Defilama (DeFi)'
+            source: 'Defilama DeFi'
+        }
+    ],
+    macro: [
+        {
+            url: 'https://www.cnbc.com/id/10000664/device/rss/rss.html',
+            source: 'CNBC Economy'
+        },
+        {
+            url: 'https://www.marketwatch.com/rss/topstories',
+            source: 'MarketWatch'
+        },
+        {
+            url: 'https://feeds.a.dj.com/rss/RSSMarketsMain.xml',
+            source: 'WSJ Markets'
+        },
+        {
+            url: 'https://www.investing.com/rss/news.rss',
+            source: 'Investing.com'
+        },
+        {
+            url: 'https://feeds.bloomberg.com/markets/news.rss',
+            source: 'Bloomberg Markets'
         }
     ]
 };
@@ -53,7 +75,8 @@ const NEWS_FEEDS = {
 // Category display names
 const CATEGORY_NAMES = {
     idx: 'IDX',
-    crypto: 'Crypto'
+    crypto: 'Crypto',
+    macro: 'Macro'
 };
 
 // Tag Keywords Configuration
@@ -71,5 +94,13 @@ const TAG_KEYWORDS = {
         'bear': ['bearish', 'crash', 'dump', 'plunge', 'sell-off', 'correction', 'outflow', 'all-time low', 'liquidation', 'distribution'],
         'regulation': ['sec', 'etf', 'regulation', 'ban', 'lawsuit', 'approval'],
         'security': ['hack', 'exploit', 'rug pull', 'scam']
+    },
+    'macro': {
+        'inflation': ['inflation', 'cpi', 'consumer price', 'price increase', 'deflation'],
+        'interest-rate': ['interest rate', 'fed', 'federal reserve', 'rate hike', 'rate cut', 'central bank', 'fomc'],
+        'gdp': ['gdp', 'economic growth', 'recession', 'expansion', 'contraction'],
+        'employment': ['unemployment', 'jobs report', 'labor market', 'nonfarm payrolls', 'jobless'],
+        'trade': ['trade war', 'tariff', 'export', 'import', 'trade deficit', 'trade surplus'],
+        'policy': ['monetary policy', 'fiscal policy', 'stimulus', 'quantitative easing', 'qe']
     }
 };
