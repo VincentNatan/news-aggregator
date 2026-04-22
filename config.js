@@ -62,10 +62,6 @@ const NEWS_FEEDS = {
             source: 'WSJ Markets'
         },
         {
-            url: 'https://www.investing.com/rss/news.rss',
-            source: 'Investing.com'
-        },
-        {
             url: 'https://feeds.bloomberg.com/markets/news.rss',
             source: 'Bloomberg Markets'
         }
