@@ -594,13 +594,15 @@
             if (tag === 'all') {
                 filteredNews = newsData.filter(news => 
                     news.title.toLowerCase().includes(searchTerm) ||
-                    news.excerpt.toLowerCase().includes(searchTerm)
+                    news.excerpt.toLowerCase().includes(searchTerm) ||
+                    news.source.toLowerCase().includes(searchTerm)
                 );
             } else {
                 filteredNews = newsData.filter(news => 
                     news.tags.includes(tag) &&
                     (news.title.toLowerCase().includes(searchTerm) ||
-                    news.excerpt.toLowerCase().includes(searchTerm))
+                    news.excerpt.toLowerCase().includes(searchTerm) ||
+                    news.source.toLowerCase().includes(searchTerm))
                 );
             }
 
