@@ -22,6 +22,10 @@ const NEWS_FEEDS = {
             source: 'IDX Channel'
         },
         {
+            url: 'https://www.mikirduit.com/tag/investasi/rss/',
+            source: 'Mikirduit Investasi'
+        },
+        {
             url: 'https://stockwatch.id/category/market/feed/',
             source: 'Stockwatch Market'
         },
@@ -81,7 +85,7 @@ const TAG_KEYWORDS = {
         'bull': ['naik', 'reli', 'menguat', 'positif', 'tumbuh', 'profit', 'laba meningkat', 'ekspansi', 'pertumbuhan', 'rebound'],
         'bear': ['turun', 'melemah', 'jatuh', 'terkoreksi', 'negatif', 'rugi', 'penurunan', 'anjlok', 'susut', 'merosot'],
         'akuisisi': ['akuisisi', 'mengakuisisi', 'membeli', 'pembelian saham', 'take over', 'ambil alih'],
-        'corp action': [ 'dividen', 'stock split', 'reverse stock split', 'rights issue', 'hmetd', 'penambahan modal', 'tambah modal', 'buyback', 'beli kembali', 'pembelian kembali saham', 'ipo', 'listing'],
+        'corp action': [ 'dividen', 'stock split', 'rights issue','right issue', 'hmetd', 'penambahan modal', 'tambah modal', 'buyback', 'beli kembali', 'pembelian kembali', 'ipo', 'listing','waran','private placement','penerbitan saham baru'],
         'merger': ['merger', 'penggabungan', 'konsolidasi', 'bergabung'],
         'earning': ['laba', 'rugi', 'laporan keuangan', 'kinerja keuangan', 'pendapatan', 'profit', 'revenue']
     },
