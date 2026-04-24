@@ -150,6 +150,23 @@
             to { transform: rotate(360deg); }
         }
 
+        /* Progress Bar */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), #4a9eff);
+            width: 0%;
+            z-index: 9999;
+            transition: width 0.3s ease;
+            opacity: 0;
+        }
+
+        .progress-bar.active {
+            opacity: 1;
+        }
+
         .controls {
             background: var(--bg-secondary);
             padding: 1rem 1.5rem;
@@ -349,6 +366,8 @@
     </style>
 </head>
 <body>
+    <div class="progress-bar" id="progressBar"></div>
+
     <div class="header">
         <div class="header-content">
             <div class="header-top">
@@ -470,6 +489,13 @@
             return date.toLocaleDateString('id-ID');
         }
 
+        // Progress bar
+        function setProgress(percent) {
+            const bar = document.getElementById('progressBar');
+            bar.style.width = percent + '%';
+            bar.classList.toggle('active', percent > 0 && percent < 100);
+        }
+
         async function fetchNews() {
             if (isLoading) return;
             isLoading = true;
@@ -479,6 +505,7 @@
             
             newsGrid.innerHTML = '<div class="loading">Loading news...</div>';
             refreshBtn.classList.add('loading');
+            setProgress(10);
 
 
             try {
@@ -486,11 +513,14 @@
                 
                 // Get feeds for the active category
                 const categoryFeeds = NEWS_FEEDS[activeCategory] || [];
+                let completed = 0;
                 
                 for (const feed of categoryFeeds) {
                     try {
                         const response = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feed.url)}&api_key=rrxvor1zbqj0g7rlj2bi8c1a1kzxx9qmyf8s5euh`);
                         const data = await response.json();
+                        completed++;
+                        setProgress(10 + (completed / categoryFeeds.length) * 80);
 
                         if (data.status === 'ok' && data.items) {
                             data.items.forEach((item, index) => {
@@ -531,6 +561,8 @@
                 console.error('Error fetching news:', error);
                 newsGrid.innerHTML = '<div class="loading">Error loading news. Click refresh to try again.</div>';
             } finally {
+                setProgress(100);
+                setTimeout(() => setProgress(0), 300);
                 isLoading = false;
                 refreshBtn.classList.remove('loading');
                 refreshBtn.textContent = '↻';
