@@ -529,10 +529,9 @@
                                 const pubDate = new Date(item.pubDate.replace(" ", "T") + "Z");
                                 const tags = autoTagNews(item.title, item.description || '');
                                 
-                                const tempDiv = document.createElement('div');
-                                tempDiv.innerHTML = item.description || item.content || '';
-                                const excerpt = tempDiv.textContent.trim().substring(0, 200) + '...';
-                                tempDiv.remove();
+                                const rawHtml = item.description || item.content || '';
+                                const textOnly = rawHtml.replace(/<img[^>]*>/gi, '').replace(/<[^>]+>/g, '');
+                                const excerpt = textOnly.trim().substring(0, 200) + '...';
 
                                 allNews.push({
                                     id: `${feed.source}-${index}-${Date.now()}`,
