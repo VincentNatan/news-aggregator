@@ -417,6 +417,8 @@
         let activeCategory = Object.keys(NEWS_FEEDS)[0]; // First category
         let isLoading = false;
 
+        const MAX_CONCURRENT_FETCHES = 5; // Adjust this value (1-20 recommended)
+
         // Initialize dock with categories from config
         function initDock() {
             const dock = document.getElementById('categoryDock');
@@ -497,6 +499,33 @@
             bar.classList.toggle('active', percent > 0 && percent < 100);
         }
 
+        // Helper function to fetch in batches with concurrency limit
+        async function fetchInBatches(feeds, batchSize) {
+            const results = [];
+            let completed = 0;
+            
+            for (let i = 0; i < feeds.length; i += batchSize) {
+                const batch = feeds.slice(i, i + batchSize);
+                const batchPromises = batch.map(feed => 
+                    fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feed.url)}&api_key=rrxvor1zbqj0g7rlj2bi8c1a1kzxx9qmyf8s5euh`)
+                        .then(response => response.json())
+                        .then(data => ({ feed, data }))
+                        .catch(error => {
+                            console.error(`Error fetching ${feed.source}:`, error);
+                            return { feed, data: null };
+                        })
+                );
+                
+                const batchResults = await Promise.all(batchPromises);
+                results.push(...batchResults);
+                
+                completed += batch.length;
+                setProgress(10 + (completed / feeds.length) * 80);
+            }
+            
+            return results;
+        }
+
         async function fetchNews() {
             if (isLoading) return;
             isLoading = true;
@@ -514,42 +543,36 @@
                 
                 // Get feeds for the active category
                 const categoryFeeds = NEWS_FEEDS[activeCategory] || [];
-                let completed = 0;
                 
-                for (const feed of categoryFeeds) {
-                    try {
-                        const response = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feed.url)}&api_key=rrxvor1zbqj0g7rlj2bi8c1a1kzxx9qmyf8s5euh`);
-                        const data = await response.json();
-                        completed++;
-                        setProgress(10 + (completed / categoryFeeds.length) * 80);
+                // Fetch feeds in batches with concurrency limit
+                const results = await fetchInBatches(categoryFeeds, MAX_CONCURRENT_FETCHES);
 
-                        if (data.status === 'ok' && data.items) {
-                            data.items.forEach((item, index) => {
-                                // Convert UTC time to local device time
-                                const pubDate = new Date(item.pubDate.replace(" ", "T") + "Z");
-                                const tags = autoTagNews(item.title, item.description || '');
-                                
-                                const rawHtml = item.description || item.content || '';
-                                const textOnly = rawHtml.replace(/<img[^>]*>/gi, '').replace(/<[^>]+>/g, '');
-                                const excerpt = textOnly.trim().substring(0, 200) + '...';
+                // Process all results
+                results.forEach(({ feed, data }) => {
+                    if (data && data.status === 'ok' && data.items) {
+                        data.items.forEach((item, index) => {
+                            // Convert UTC time to local device time
+                            const pubDate = new Date(item.pubDate.replace(" ", "T") + "Z");
+                            const tags = autoTagNews(item.title, item.description || '');
+                            
+                            const rawHtml = item.description || item.content || '';
+                            const textOnly = rawHtml.replace(/<img[^>]*>/gi, '').replace(/<[^>]+>/g, '');
+                            const excerpt = textOnly.trim().substring(0, 200) + '...';
 
-                                allNews.push({
-                                    id: `${feed.source}-${index}-${Date.now()}`,
-                                    title: item.title,
-                                    excerpt: excerpt,
-                                    tags: tags,
-                                    source: feed.source,
-                                    category: activeCategory,
-                                    time: getRelativeTime(pubDate),
-                                    pubDate: pubDate,
-                                    link: item.link
-                                });
+                            allNews.push({
+                                id: `${feed.source}-${index}-${Date.now()}`,
+                                title: item.title,
+                                excerpt: excerpt,
+                                tags: tags,
+                                source: feed.source,
+                                category: activeCategory,
+                                time: getRelativeTime(pubDate),
+                                pubDate: pubDate,
+                                link: item.link
                             });
-                        }
-                    } catch (error) {
-                        console.error(`Error fetching ${feed.source}:`, error);
+                        });
                     }
-                }
+                });
 
                 allNews.sort((a, b) => b.pubDate - a.pubDate);
                 newsData = allNews;
