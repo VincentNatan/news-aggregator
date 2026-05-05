@@ -58,12 +58,20 @@ const NEWS_FEEDS = {
             source: 'CNBC Economy'
         },
         {
+            url: 'https://rss.nytimes.com/services/xml/rss/nyt/World.xml',
+            source: 'NY Times World'
+        },
+        {
             url: 'https://www.marketwatch.com/rss/topstories',
             source: 'MarketWatch'
         },
         {
-            url: 'https://feeds.a.dj.com/rss/RSSMarketsMain.xml',
+            url: 'https://feeds.content.dowjones.io/public/rss/RSSMarketsMain',
             source: 'WSJ Markets'
+        },
+        {
+            url: 'https://feeds.content.dowjones.io/public/rss/RSSWorldNews',
+            source: 'WSJ World News'
         },
         {
             url: 'https://feeds.bloomberg.com/markets/news.rss',
@@ -97,10 +105,13 @@ const TAG_KEYWORDS = {
     },
     'macro': {
         'inflation': ['inflation', 'cpi', 'consumer price', 'price increase', 'deflation'],
-        'interest-rate': ['interest rate', 'fed', 'federal reserve', 'rate hike', 'rate cut', 'central bank', 'fomc'],
+        'interest-rate': ['interest rate', 'fed', 'federal reserve', 'rate hike', 'rate cut', 'central bank', 'fomc', 'basis points', 'bps'],
         'gdp': ['gdp', 'economic growth', 'recession', 'expansion', 'contraction'],
-        'employment': ['unemployment', 'jobs report', 'labor market', 'nonfarm payrolls', 'jobless'],
         'trade': ['trade war', 'tariff', 'export', 'import', 'trade deficit', 'trade surplus'],
-        'policy': ['monetary policy', 'fiscal policy', 'stimulus', 'quantitative easing', 'qe']
+        'policy': ['monetary policy', 'fiscal policy', 'stimulus', 'quantitative easing', 'qe'],
+        'geopolitics': ['war', 'conflict', 'sanctions', 'geopolitical', 'military', 'tension', 'ukraine', 'russia', 'china', 'taiwan'],
+        'energy': ['oil', 'crude', 'opec', 'energy crisis', 'gas prices', 'petroleum', 'wti', 'brent'],
+        'currency': ['dollar', 'euro', 'yen', 'forex', 'exchange rate', 'currency', 'fx'],
+        'bonds': ['treasury', 'bond yield', 'government debt', 'sovereign debt', '10-year', 'yield curve'],
     }
 };
