@@ -453,6 +453,7 @@
         // Category management
         function switchCategory(category) {
             activeCategory = category;
+            activeFilter = 'all';
             
             document.querySelectorAll('.dock-item').forEach(tab => {
                 tab.classList.remove('active');
