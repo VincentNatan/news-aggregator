@@ -508,7 +508,7 @@
             for (let i = 0; i < feeds.length; i += batchSize) {
                 const batch = feeds.slice(i, i + batchSize);
                 const batchPromises = batch.map(feed => 
-                    fetch(`${encodeURIComponent(feed.url)}`)
+                    fetch(`https://www.toptal.com/developers/feed2json/convert?url=${encodeURIComponent(feed.url)}`)
                         .then(response => response.json())
                         .then(data => ({ feed, data }))
                         .catch(error => {
