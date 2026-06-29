@@ -508,7 +508,7 @@
             for (let i = 0; i < feeds.length; i += batchSize) {
                 const batch = feeds.slice(i, i + batchSize);
                 const batchPromises = batch.map(feed => 
-                    fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feed.url)}&api_key=rrxvor1zbqj0g7rlj2bi8c1a1kzxx9qmyf8s5euh`)
+                    fetch(`${encodeURIComponent(feed.url)}`)
                         .then(response => response.json())
                         .then(data => ({ feed, data }))
                         .catch(error => {
