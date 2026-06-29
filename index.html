@@ -500,6 +500,91 @@
             bar.classList.toggle('active', percent > 0 && percent < 100);
         }
 
+        function getFirstChildByNames(parent, names) {
+            return Array.from(parent.children || []).find(child => names.includes(child.localName));
+        }
+
+        function getFirstChildText(parent, names) {
+            const node = getFirstChildByNames(parent, names);
+            return node ? node.textContent.trim() : '';
+        }
+
+        function stripHtmlToText(html = '') {
+            const withoutImages = html.replace(/<img[^>]*>/gi, '');
+            const doc = new DOMParser().parseFromString(`<body>${withoutImages}</body>`, 'text/html');
+            return (doc.body.textContent || '').replace(/\s+/g, ' ').trim();
+        }
+
+        function parseFeedDate(rawDate) {
+            if (!rawDate) return new Date();
+
+            const parsed = new Date(rawDate);
+            if (!Number.isNaN(parsed.getTime())) {
+                return parsed;
+            }
+
+            const fallback = new Date(rawDate.replace(' ', 'T'));
+            return Number.isNaN(fallback.getTime()) ? new Date() : fallback;
+        }
+
+        function parseFeedXml(xmlText) {
+            const xml = new DOMParser().parseFromString(xmlText, 'text/xml');
+            const parserError = xml.querySelector('parsererror');
+
+            if (parserError) {
+                throw new Error('Invalid XML response');
+            }
+
+            const rssItems = Array.from(xml.getElementsByTagName('item'));
+            if (rssItems.length > 0) {
+                return rssItems.map(item => {
+                    const descriptionHtml =
+                        getFirstChildText(item, ['description', 'encoded', 'content']) || '';
+
+                    return {
+                        title: getFirstChildText(item, ['title']) || 'Untitled',
+                        description: stripHtmlToText(descriptionHtml),
+                        pubDate: parseFeedDate(getFirstChildText(item, ['pubDate', 'date', 'published'])),
+                        link: getFirstChildText(item, ['link'])
+                    };
+                });
+            }
+
+            const atomEntries = Array.from(xml.getElementsByTagName('entry'));
+            return atomEntries.map(entry => {
+                const summaryHtml = getFirstChildText(entry, ['summary', 'content']) || '';
+                const linkNode = getFirstChildByNames(entry, ['link']);
+                const link = linkNode ? (linkNode.getAttribute('href') || linkNode.textContent.trim()) : '';
+
+                return {
+                    title: getFirstChildText(entry, ['title']) || 'Untitled',
+                    description: stripHtmlToText(summaryHtml),
+                    pubDate: parseFeedDate(getFirstChildText(entry, ['updated', 'published'])),
+                    link
+                };
+            });
+        }
+
+        async function fetchFeed(feed) {
+            try {
+                const response = await fetch(feed.url, {
+                    headers: {
+                        'Accept': 'application/rss+xml, application/xml, text/xml'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const xmlText = await response.text();
+                return { feed, items: parseFeedXml(xmlText), error: null };
+            } catch (error) {
+                console.error(`Error fetching ${feed.source}:`, error);
+                return { feed, items: [], error };
+            }
+        }
+
         // Helper function to fetch in batches with concurrency limit
         async function fetchInBatches(feeds, batchSize) {
             const results = [];
@@ -507,17 +592,7 @@
             
             for (let i = 0; i < feeds.length; i += batchSize) {
                 const batch = feeds.slice(i, i + batchSize);
-                const batchPromises = batch.map(feed => 
-                    fetch(`https://www.toptal.com/developers/feed2json/convert?url=${encodeURIComponent(feed.url)}`)
-                        .then(response => response.json())
-                        .then(data => ({ feed, data }))
-                        .catch(error => {
-                            console.error(`Error fetching ${feed.source}:`, error);
-                            return { feed, data: null };
-                        })
-                );
-                
-                const batchResults = await Promise.all(batchPromises);
+                const batchResults = await Promise.all(batch.map(feed => fetchFeed(feed)));
                 results.push(...batchResults);
                 
                 completed += batch.length;
@@ -541,6 +616,7 @@
 
             try {
                 const allNews = [];
+                let failedFeeds = 0;
                 
                 // Get feeds for the active category
                 const categoryFeeds = NEWS_FEEDS[activeCategory] || [];
@@ -549,35 +625,40 @@
                 const results = await fetchInBatches(categoryFeeds, MAX_CONCURRENT_FETCHES);
 
                 // Process all results
-                results.forEach(({ feed, data }) => {
-                    if (data && data.status === 'ok' && data.items) {
-                        data.items.forEach((item, index) => {
-                            // Convert UTC time to local device time
-                            const pubDate = new Date(item.pubDate.replace(" ", "T") + "Z");
-                            const tags = autoTagNews(item.title, item.description || '');
-                            
-                            const rawHtml = item.description || item.content || '';
-                            const textOnly = rawHtml.replace(/<img[^>]*>/gi, '').replace(/<[^>]+>/g, '');
-                            const excerpt = textOnly.trim().substring(0, 200) + '...';
-
-                            allNews.push({
-                                id: `${feed.source}-${index}-${Date.now()}`,
-                                title: item.title,
-                                excerpt: excerpt,
-                                tags: tags,
-                                source: feed.source,
-                                category: activeCategory,
-                                time: getRelativeTime(pubDate),
-                                pubDate: pubDate,
-                                link: item.link
-                            });
-                        });
+                results.forEach(({ feed, items, error }) => {
+                    if (error) {
+                        failedFeeds += 1;
+                        return;
                     }
+
+                    items.forEach((item, index) => {
+                        const pubDate = item.pubDate instanceof Date ? item.pubDate : new Date();
+                        const tags = autoTagNews(item.title, item.description || '');
+                        const excerpt = item.description
+                            ? `${item.description.substring(0, 200)}${item.description.length > 200 ? '...' : ''}`
+                            : 'No summary available.';
+
+                        allNews.push({
+                            id: `${feed.source}-${index}-${pubDate.getTime()}`,
+                            title: item.title,
+                            excerpt: excerpt,
+                            tags: tags,
+                            source: feed.source,
+                            category: activeCategory,
+                            time: getRelativeTime(pubDate),
+                            pubDate: pubDate,
+                            link: item.link
+                        });
+                    });
                 });
 
                 allNews.sort((a, b) => b.pubDate - a.pubDate);
                 newsData = allNews;
                 filterNews(activeFilter);
+
+                if (failedFeeds === categoryFeeds.length) {
+                    newsGrid.innerHTML = '<div class="loading">All feeds were blocked or failed to load. XML parsing works client-side, but many RSS endpoints still block browser fetches with CORS.</div>';
+                }
 
                 console.log(`Loaded ${newsData.length} articles from ${categoryFeeds.length} sources`);
                 
